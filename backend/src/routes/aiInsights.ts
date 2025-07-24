@@ -1,48 +1,129 @@
 import express from "express";
 import { authenticateUser } from "../middleware/auth";
+import { requireRole } from "../middleware/roles";
 import { supabase } from "../utils/supabaseClient";
 
 const router = express.Router();
 
-// POST /api/v1/ai-insights
-router.post("/", authenticateUser, async (req, res) => {
-  const { employee_id, insight_type, insight_data, confidence_score, model_version = "v1.0" } = req.body;
+/**
+ * GET /api/v1/ai-insights
+ * Manager-only: Get all active AI insights for their company
+ */
+router.get(
+  "/",
+  authenticateUser,
+  requireRole(["manager"]),
+  async (req, res) => {
+    const { id: userId } = res.locals.user;
 
-  if (!employee_id || !insight_type || !insight_data || confidence_score == null) {
-    return res.status(400).json({ error: "Missing required fields" });
+    const { data: profile, error: profileError } = await supabase
+      .from("user_profiles")
+      .select("company_id")
+      .eq("id", userId)
+      .single();
+
+    if (profileError || !profile) {
+      return res.status(404).json({ error: "Manager profile not found" });
+    }
+
+    const { company_id } = profile;
+
+    const { data, error } = await supabase
+      .from("ai_insights")
+      .select("*")
+      .eq("company_id", company_id)
+      .eq("is_active", true);
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    res.json(data);
   }
+);
 
-  const { data, error } = await supabase.from("ai_insights").insert([
-    {
-      employee_id,
-      insight_type,
-      insight_data,
-      confidence_score,
-      model_version,
-    },
-  ])
-  .select()
-  .single();
+/**
+ * GET /api/v1/ai-insights/:employeeId
+ * Employee can view their own insights; manager can view anyone's
+ */
+router.get(
+  "/:employeeId",
+  authenticateUser,
+  requireRole(["employee", "manager"]),
+  async (req, res) => {
+    const user = res.locals.user;
+    const { employeeId } = req.params;
 
-  if (error) return res.status(400).json({ error: error.message });
+    if (user.role === "employee" && user.id !== employeeId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
 
-  res.status(201).json(data);
-});
+    const { data, error } = await supabase
+      .from("ai_insights")
+      .select("*")
+      .eq("employee_id", employeeId)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false });
 
-// GET /api/v1/ai-insights/:employee_id
-router.get("/:employee_id", authenticateUser, async (req, res) => {
-  const { employee_id } = req.params;
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
 
-  const { data, error } = await supabase
-    .from("ai_insights")
-    .select("*")
-    .eq("employee_id", employee_id)
-    .eq("is_active", true)
-    .order("created_at", { ascending: false });
+    res.json({ insights: data });
+  }
+);
 
-  if (error) return res.status(400).json({ error: error.message });
+/**
+ * POST /api/v1/ai-insights
+ * Manager-only: Create new AI insight for an employee
+ */
+router.post(
+  "/",
+  authenticateUser,
+  requireRole(["manager"]),
+  async (req, res) => {
+    const { employee_id, summary, sentiment_score, recommendations } = req.body;
 
-  res.status(200).json(data);
-});
+    const { data, error } = await supabase.from("ai_insights").insert([
+      {
+        employee_id,
+        summary,
+        sentiment_score,
+        recommendations,
+        is_active: true,
+      },
+    ]);
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    res.status(201).json({ message: "Insight created", data });
+  }
+);
+
+/**
+ * PUT /api/v1/ai-insights/:id/deactivate
+ * Manager-only: Deactivate an AI insight
+ */
+router.put(
+  "/:id/deactivate",
+  authenticateUser,
+  requireRole(["manager"]),
+  async (req, res) => {
+    const { id } = req.params;
+
+    const { error } = await supabase
+      .from("ai_insights")
+      .update({ is_active: false })
+      .eq("id", id);
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    res.json({ message: "Insight deactivated" });
+  }
+);
 
 export default router;
