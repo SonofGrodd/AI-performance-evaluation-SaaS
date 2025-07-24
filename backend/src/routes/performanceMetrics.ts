@@ -1,59 +1,126 @@
 import express from "express";
-import { authenticateUser } from "../middleware/auth";
 import { supabase } from "../utils/supabaseClient";
+import { authenticateUser } from "../middleware/auth";
+import { requireRole } from "../middleware/roles";
 
 const router = express.Router();
 
-// POST /api/v1/performance-metrics
-router.post("/", authenticateUser, async (req, res) => {
-  const {
-    employee_id,
-    metric_name,
-    metric_value,
-    metric_unit,
-    metric_type,
-    source_system,
-    metadata,
-    recorded_at,
-  } = req.body;
+/**
+ * GET /api/v1/performance-metrics
+ * Manager-only: Get all performance metrics for their company
+ */
+router.get(
+  "/",
+  authenticateUser,
+  requireRole(["manager"]),
+  async (req, res) => {
+    const { id: userId } = res.locals.user;
 
-  if (!employee_id || !metric_name || !metric_value || !metric_type || !source_system) {
-    return res.status(400).json({ error: "Missing required fields" });
+    // Get manager's company_id
+    const { data: profile, error: profileError } = await supabase
+      .from("user_profiles")
+      .select("company_id")
+      .eq("id", userId)
+      .single();
+
+    if (profileError || !profile) {
+      return res.status(404).json({ error: "Manager profile not found" });
+    }
+
+    const { company_id } = profile;
+
+    const { data, error } = await supabase
+      .from("performance_metrics")
+      .select("*")
+      .eq("company_id", company_id);
+
+    if (error) return res.status(500).json({ error: error.message });
+
+    res.json(data);
   }
+);
 
-  const { data, error } = await supabase.from("performance_metrics").insert([
-    {
-      employee_id,
-      metric_name,
-      metric_value,
-      metric_unit,
-      metric_type,
-      source_system,
-      metadata,
-      recorded_at: recorded_at || new Date().toISOString(),
-    },
-  ])
-  .select()
-  .single();
+/**
+ * POST /api/v1/performance-metrics
+ * Manager-only: Create a new performance metric
+ */
+router.post(
+  "/",
+  authenticateUser,
+  requireRole(["manager"]),
+  async (req, res) => {
+    const { name, description } = req.body;
+    const { id: userId } = res.locals.user;
 
-  if (error) return res.status(400).json({ error: error.message });
+    const { data: profile, error: profileError } = await supabase
+      .from("user_profiles")
+      .select("company_id")
+      .eq("id", userId)
+      .single();
 
-  res.status(201).json(data);
-});
+    if (profileError || !profile) {
+      return res.status(404).json({ error: "Manager profile not found" });
+    }
 
-// GET /api/v1/performance-metrics/:employee_id
-router.get("/:employee_id", authenticateUser, async (req, res) => {
-  const { employee_id } = req.params;
+    const { company_id } = profile;
 
-  const { data, error } = await supabase
-    .from("performance_metrics")
-    .select("*")
-    .eq("employee_id", employee_id)
-    .order("recorded_at", { ascending: false });
+    const { data, error } = await supabase.from("performance_metrics").insert([
+      {
+        name,
+        description,
+        company_id,
+      },
+    ]);
 
-  if (error) return res.status(400).json({ error: error.message });
+    if (error) return res.status(500).json({ error: error.message });
 
-  res.status(200).json(data);
-});
+    res.status(201).json({ message: "Metric created", data });
+  }
+);
+
+/**
+ * PUT /api/v1/performance-metrics/:id
+ * Manager-only: Update a metric
+ */
+router.put(
+  "/:id",
+  authenticateUser,
+  requireRole(["manager"]),
+  async (req, res) => {
+    const { id } = req.params;
+    const { name, description } = req.body;
+
+    const { error } = await supabase
+      .from("performance_metrics")
+      .update({ name, description })
+      .eq("id", id);
+
+    if (error) return res.status(500).json({ error: error.message });
+
+    res.json({ message: "Metric updated" });
+  }
+);
+
+/**
+ * DELETE /api/v1/performance-metrics/:id
+ * Manager-only: Delete a metric
+ */
+router.delete(
+  "/:id",
+  authenticateUser,
+  requireRole(["manager"]),
+  async (req, res) => {
+    const { id } = req.params;
+
+    const { error } = await supabase
+      .from("performance_metrics")
+      .delete()
+      .eq("id", id);
+
+    if (error) return res.status(500).json({ error: error.message });
+
+    res.json({ message: "Metric deleted" });
+  }
+);
 
 export default router;
