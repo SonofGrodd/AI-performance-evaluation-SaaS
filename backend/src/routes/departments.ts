@@ -1,91 +1,118 @@
-import express from 'express'
-import { supabase } from '../utils/supabaseClient'
-import { requireAuth } from '../middleware/auth'
+import express from "express";
+import { authenticateUser } from "../middleware/auth";
+import { supabase } from "../utils/supabaseClient";
 
-const router = express.Router()
+const router = express.Router();
 
-// Add a department
-router.post('/', requireAuth, async (req, res) => {
-  const user = req.user!;
-  const { name } = req.body
+// GET all departments for the user's company
+router.get("/", authenticateUser, async (req, res) => {
+  const user = res.locals.user;
 
-  // Get user's company
+  // Get user's profile
   const { data: profile, error: profileError } = await supabase
-    .from('user_profiles')
-    .select('company_id')
-    .eq('id', user.id)
-    .single()
+    .from("user_profiles")
+    .select("company_id")
+    .eq("id", user.id)
+    .single();
 
-  if (profileError || !profile) return res.status(404).json({ error: 'Company not found' })
+  if (profileError || !profile)
+    return res.status(404).json({ error: "User profile not found" });
 
-  const { data: dept, error: deptError } = await supabase
-    .from('departments')
-    .insert([{ name, company_id: profile.company_id }])
-    .select()
-    .single()
+  const { company_id } = profile;
 
-  if (deptError) return res.status(400).json({ error: deptError.message })
+  const { data: departments, error } = await supabase
+    .from("departments")
+    .select("*")
+    .eq("company_id", company_id);
 
-  return res.status(201).json(dept)
-})
-// DELETE /api/v1/departments/:id
-router.delete("/:id", requireAuth, async (req, res) => {
-  const { id } = req.params;
+  if (error) return res.status(500).json({ error: error.message });
+
+  res.json({ departments });
+});
+
+// POST create a new department
+router.post("/", authenticateUser, async (req, res) => {
+  const user = res.locals.user;
+  const { name, description } = req.body;
+
+  const { data: profile, error: profileError } = await supabase
+    .from("user_profiles")
+    .select("company_id")
+    .eq("id", user.id)
+    .single();
+
+  if (profileError || !profile)
+    return res.status(404).json({ error: "User profile not found" });
+
+  const { company_id } = profile;
+
+  const { data, error } = await supabase.from("departments").insert([
+    {
+      name,
+      description,
+      company_id,
+    },
+  ]);
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  res.status(201).json({ department: data?.[0] });
+});
+
+// PUT update a department
+router.put("/:id", authenticateUser, async (req, res) => {
+  const user = res.locals.user;
+  const departmentId = req.params.id;
+  const { name, description } = req.body;
+
+  const { data: profile, error: profileError } = await supabase
+    .from("user_profiles")
+    .select("company_id")
+    .eq("id", user.id)
+    .single();
+
+  if (profileError || !profile)
+    return res.status(404).json({ error: "User profile not found" });
+
+  const { company_id } = profile;
+
+  const { data, error } = await supabase
+    .from("departments")
+    .update({ name, description })
+    .eq("id", departmentId)
+    .eq("company_id", company_id)
+    .select();
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  res.json({ department: data?.[0] });
+});
+
+// DELETE a department
+router.delete("/:id", authenticateUser, async (req, res) => {
+  const user = res.locals.user;
+  const departmentId = req.params.id;
+
+  const { data: profile, error: profileError } = await supabase
+    .from("user_profiles")
+    .select("company_id")
+    .eq("id", user.id)
+    .single();
+
+  if (profileError || !profile)
+    return res.status(404).json({ error: "User profile not found" });
+
+  const { company_id } = profile;
 
   const { error } = await supabase
     .from("departments")
     .delete()
-    .eq("id", id);
+    .eq("id", departmentId)
+    .eq("company_id", company_id);
 
-  if (error) return res.status(400).json({ error: error.message });
+  if (error) return res.status(500).json({ error: error.message });
 
-  res.status(204).send(); // No Content
+  res.status(204).send();
 });
 
-// PUT /api/v1/departments/:id
-router.put("/:id", requireAuth, async (req, res) => {
-  const { id } = req.params;
-  const { name } = req.body;
-
-  if (!name) {
-    return res.status(400).json({ error: "Department name is required" });
-  }
-
-  const { data, error } = await supabase
-    .from("departments")
-    .update({
-      name,
-      updated_at: new Date().toISOString()
-    })
-    .eq("id", id)
-    .select()
-    .single();
-
-  if (error) return res.status(400).json({ error: error.message });
-
-  res.status(200).json(data);
-});
-
-// Get all departments for current company
-router.get('/', requireAuth, async (req, res) => {
-  const user = req.user!;
-
-  const { data: profile, error: profileError } = await supabase
-    .from('user_profiles')
-    .select('company_id')
-    .eq('id', user.id)
-    .single()
-
-  if (profileError || !profile) return res.status(404).json({ error: 'Company not found' })
-
-  const { data: departments, error } = await supabase
-    .from('departments')
-    .select('*')
-    .eq('company_id', profile.company_id)
-
-  if (error) return res.status(500).json({ error: error.message })
-
-  return res.json(departments)
-})
-
-export default router
+export default router;
