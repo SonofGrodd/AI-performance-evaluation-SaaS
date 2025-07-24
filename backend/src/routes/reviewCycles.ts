@@ -13,7 +13,7 @@ router.post("/", authenticateUser, async (req, res) => {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
-  // Fetch user's company
+  // Fetch user's company 
   const { data: profile, error: profileError } = await supabase
     .from("user_profiles")
     .select("company_id")
