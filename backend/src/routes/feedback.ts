@@ -1,88 +1,61 @@
 import express from "express";
 import { authenticateUser } from "../middleware/auth";
+import { requireRole } from "../middleware/roles";
 import { supabase } from "../utils/supabaseClient";
-import OpenAI from "openai";
 
 const router = express.Router();
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// POST /api/v1/feedback
-router.post("/", authenticateUser, async (req, res) => {
-  const reviewer_id = res.locals.user.id;
-  const {
-    employee_id,
-    review_id,
-    feedback_text,
-    feedback_type = "continuous",
-    is_anonymous = false,
-  } = req.body;
+// POST /api/v1/feedback - Submit anonymous feedback (employees only)
+router.post("/", authenticateUser, requireRole(["employee"]), async (req, res) => {
+  const senderId = res.locals.user.id;
+  const { recipientId, content, sentiment_label } = req.body;
 
-  if (!employee_id || !feedback_text) {
-    return res.status(400).json({ error: "Missing required fields" });
+  if (!recipientId || !content) {
+    return res.status(400).json({ error: "Recipient and content are required." });
   }
 
-  // Call OpenAI for sentiment analysis
-  const aiPrompt = `Classify this feedback as positive, neutral, or negative and return a sentiment score between -1 and 1:\n\n"${feedback_text}"`;
+  const { error } = await supabase.from("feedback").insert({
+    sender_id: senderId,
+    employee_id: recipientId,
+    content,
+    sentiment_label,
+    is_anonymous: true,
+  });
 
-  try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: aiPrompt }],
-    });
-
-    const aiResponse = completion.choices[0].message.content || "";
-    const sentimentMatch = aiResponse.match(/(positive|neutral|negative)/i);
-    const scoreMatch = aiResponse.match(/-?\\d+\\.\\d+/);
-
-    const sentiment_label = sentimentMatch ? sentimentMatch[1].toLowerCase() : null;
-    const sentiment_score = scoreMatch ? parseFloat(scoreMatch[0]) : null;
-
-    const { data, error } = await supabase.from("feedback").insert([
-      {
-        employee_id,
-        review_id,
-        reviewer_id: is_anonymous ? null : reviewer_id,
-        feedback_text,
-        feedback_type,
-        is_anonymous,
-        sentiment_label,
-        sentiment_score,
-        ai_insights: { raw_response: aiResponse },
-      },
-    ]).select().single();
-
-    if (error) return res.status(400).json({ error: error.message });
-
-    res.status(201).json(data);
-  } catch (err) {
-    console.error("OpenAI error:", err);
-    return res.status(500).json({ error: "AI sentiment analysis failed" });
+  if (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to submit feedback." });
   }
+
+  res.json({ message: "Feedback submitted anonymously." });
 });
 
-// GET /api/v1/feedback
-router.get("/", authenticateUser, async (req, res) => {
+// GET /api/v1/feedback/my-feedback - Get feedback for logged-in employee
+router.get("/my-feedback", authenticateUser, requireRole(["employee"]), async (req, res) => {
   const userId = res.locals.user.id;
 
   const { data, error } = await supabase
     .from("feedback")
     .select("*")
-    .or(`employee_id.eq.${userId},reviewer_id.eq.${userId}`)
-    .order("created_at", { ascending: false });
+    .eq("employee_id", userId);
 
-  if (error) return res.status(400).json({ error: error.message });
+  if (error) return res.status(500).json({ error: "Failed to fetch feedback." });
 
-  res.status(200).json(data);
+  res.json(data);
 });
 
-// DELETE /api/v1/feedback/:id
-router.delete("/:id", authenticateUser, async (req, res) => {
-  const { id } = req.params;
+// GET /api/v1/feedback/for/:employeeId - Managers can fetch feedback for team members
+router.get("/for/:employeeId", authenticateUser, requireRole(["manager"]), async (req, res) => {
+  const { employeeId } = req.params;
 
-  const { error } = await supabase.from("feedback").delete().eq("id", id);
-  if (error) return res.status(400).json({ error: error.message });
+  const { data, error } = await supabase
+    .from("feedback")
+    .select("*")
+    .eq("employee_id", employeeId);
 
-  res.status(204).send();
+  if (error) return res.status(500).json({ error: "Failed to fetch feedback." });
+
+  res.json(data);
 });
 
 export default router;
