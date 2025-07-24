@@ -8,51 +8,56 @@ const router = express.Router();
 router.get("/events", authenticateUser, async (req, res) => {
   const userId = res.locals.user.id;
 
-  // Fetch attendance logs
-  const { data: attendanceLogs } = await supabase
-    .from("attendance_logs")
-    .select("date, clock_in, clock_out");
+  const { data: profile } = await supabase
+    .from("user_profiles")
+    .select("company_id")
+    .eq("id", userId)
+    .single();
 
-  // Fetch review cycles (active or upcoming)
-  const { data: reviewCycles } = await supabase
-    .from("review_cycles")
-    .select("start_date, end_date, name")
-    .or("status.eq.active,status.eq.draft");
+  if (!profile) return res.status(404).json({ error: "Profile not found" });
 
-  // Fetch personal performance reviews
-  const { data: myReviews } = await supabase
-    .from("performance_reviews")
-    .select("created_at, review_type, status")
-    .eq("employee_id", userId);
+  const { data, error } = await supabase
+    .from("calendar_events")
+    .select("*")
+    .eq("company_id", profile.company_id);
 
-  // Map everything to calendar events
-  const attendanceEvents = attendanceLogs?.map(log => ({
-    title: "Clock-in / Clock-out",
-    start: log.clock_in,
-    end: log.clock_out,
-    type: "attendance"
-  }));
+  if (error) return res.status(500).json({ error: error.message });
 
-  const reviewCycleEvents = reviewCycles?.map(cycle => ({
-    title: `Review Cycle: ${cycle.name}`,
-    start: cycle.start_date,
-    end: cycle.end_date,
-    type: "review_cycle"
-  }));
+  res.json(data);
+});
 
-  const personalReviewEvents = myReviews?.map(r => ({
-    title: `Review: ${r.review_type} (${r.status})`,
-    start: r.created_at,
-    type: "review"
-  }));
+// POST /api/v1/calendar/events
+router.post("/events", authenticateUser, async (req, res) => {
+  const userId = res.locals.user.id;
+  const { title, description, event_type, start_date, end_date } = req.body;
 
-  const allEvents = [
-    ...(attendanceEvents || []),
-    ...(reviewCycleEvents || []),
-    ...(personalReviewEvents || [])
-  ];
+  const { data: profile } = await supabase
+    .from("user_profiles")
+    .select("company_id")
+    .eq("id", userId)
+    .single();
 
-  res.json({ events: allEvents });
+  if (!profile) return res.status(404).json({ error: "Profile not found" });
+
+  const { data, error } = await supabase
+    .from("calendar_events")
+    .insert([
+      {
+        employee_id: userId,
+        company_id: profile.company_id,
+        title,
+        description,
+        event_type,
+        start_date,
+        end_date,
+      },
+    ])
+    .select()
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  res.status(201).json(data);
 });
 
 export default router;
