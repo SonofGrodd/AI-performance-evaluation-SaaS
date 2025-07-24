@@ -15,12 +15,8 @@ import aiInsightsRoutes from "./routes/aiInsights"
 import peerReviewsRoutes from "./routes/peerReviews"
 import aiChatRoutes from "./routes/aiChat"
 import chartsRoutes from "./routes/charts"
-import integrationRoutes from "./routes/integrations";
-
-
-
-
-
+import integrationRoutes from "./routes/integrations"
+import attendanceRoutes from "./routes/attendance";
 
 dotenv.config()
 
@@ -32,6 +28,7 @@ app.use(morgan('dev'))
 app.use(express.json())
 
 // API routes
+app.use("/api/v1/attendance", attendanceRoutes);
 app.use("/api/v1/integrations", integrationRoutes);
 app.use("/api/v1/charts", chartsRoutes);
 app.use("/api/v1/ai", aiChatRoutes);
