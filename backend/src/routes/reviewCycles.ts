@@ -1,76 +1,47 @@
 import express from "express";
-import { authenticateUser } from "../middleware/auth";
 import { supabase } from "../utils/supabaseClient";
+import { authenticateUser } from "../middleware/auth";
+import requireRole from "../middleware/roles";
 
 const router = express.Router();
 
 // POST /api/v1/review-cycles
-router.post("/", authenticateUser, async (req, res) => {
-  const { name, description, start_date, end_date, review_type = "quarterly", status = "draft" } = req.body;
-  const created_by = res.locals.user.id;
-
-  if (!name || !start_date || !end_date) {
-    return res.status(400).json({ error: "Missing required fields" });
-  }
-
-  // Fetch user's company 
-  const { data: profile, error: profileError } = await supabase
-    .from("user_profiles")
-    .select("company_id")
-    .eq("id", created_by)
-    .single();
-
-  if (profileError || !profile) return res.status(400).json({ error: "User profile not found" });
+router.post("/", authenticateUser, requireRole("manager"), async (req, res) => {
+  const { name, start_date, end_date, status, company_id } = req.body;
 
   const { data, error } = await supabase
     .from("review_cycles")
-    .insert([
-      {
-        company_id: profile.company_id,
-        name,
-        description,
-        start_date,
-        end_date,
-        review_type,
-        status,
-        created_by
-      }
-    ])
+    .insert([{ name, start_date, end_date, status, company_id }])
     .select()
     .single();
 
-  if (error) return res.status(400).json({ error: error.message });
+  if (error) {
+    return res.status(400).json({ error: error.message });
+  }
 
   res.status(201).json(data);
 });
 
 // GET /api/v1/review-cycles
-router.get("/", authenticateUser, async (req, res) => {
-  const userId = res.locals.user.id;
-
-  const { data: profile, error: profileError } = await supabase
-    .from("user_profiles")
-    .select("company_id")
-    .eq("id", userId)
-    .single();
-
-  if (profileError || !profile) return res.status(400).json({ error: "User profile not found" });
+router.get("/", authenticateUser, requireRole("manager"), async (req, res) => {
+  const { company_id } = req.query;
 
   const { data, error } = await supabase
     .from("review_cycles")
     .select("*")
-    .eq("company_id", profile.company_id)
-    .order("start_date", { ascending: false });
+    .eq("company_id", company_id);
 
-  if (error) return res.status(400).json({ error: error.message });
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
 
-  res.status(200).json(data);
+  res.json(data);
 });
 
 // PUT /api/v1/review-cycles/:id
-router.put("/:id", authenticateUser, async (req, res) => {
+router.put("/:id", authenticateUser, requireRole("manager"), async (req, res) => {
   const { id } = req.params;
-  const updates = { ...req.body, updated_at: new Date().toISOString() };
+  const updates = req.body;
 
   const { data, error } = await supabase
     .from("review_cycles")
@@ -79,13 +50,15 @@ router.put("/:id", authenticateUser, async (req, res) => {
     .select()
     .single();
 
-  if (error) return res.status(400).json({ error: error.message });
+  if (error) {
+    return res.status(400).json({ error: error.message });
+  }
 
-  res.status(200).json(data);
+  res.json(data);
 });
 
 // DELETE /api/v1/review-cycles/:id
-router.delete("/:id", authenticateUser, async (req, res) => {
+router.delete("/:id", authenticateUser, requireRole("manager"), async (req, res) => {
   const { id } = req.params;
 
   const { error } = await supabase
@@ -93,7 +66,9 @@ router.delete("/:id", authenticateUser, async (req, res) => {
     .delete()
     .eq("id", id);
 
-  if (error) return res.status(400).json({ error: error.message });
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
 
   res.status(204).send();
 });
