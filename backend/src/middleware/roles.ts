@@ -1,25 +1,17 @@
-import express from "express";
-import { authenticateUser } from "./auth";
-import { requireRole } from "./roles";
+import { Request, Response, NextFunction } from "express";
 
-const router = express.Router();
+/**
+ * Role-based access middleware
+ * @param roles - Allowed roles (e.g., ["manager", "employee"])
+ */
+export const requireRole = (roles: string[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const user = res.locals.user;
 
-router.get( 
-  "/admin/dashboard",
-  authenticateUser,
-  requireRole(["manager", "admin"]),
-  (req, res) => {
-    res.json({ message: "Welcome, Admin or Manager!" });
-  }
-);
+    if (!user || !roles.includes(user.role)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
 
-router.get(
-  "/employee/profile",
-  authenticateUser,
-  requireRole(["employee"]),
-  (req, res) => {
-    res.json({ message: "Hello, Employee!" });
-  }
-);
-
-export default router;
+    next();
+  };
+};
