@@ -8,11 +8,8 @@ import companyRoutes from './routes/companies'
 import departmentRoutes from './routes/departments'
 import authRoutes from './routes/auth'
 import reviewCycleRoutes from "./routes/reviewCycles"
-import performanceReviewRoutes from "./routes/performanceReviews";
-
-;
-
-
+import performanceReviewRoutes from "./routes/performanceReviews"
+import feedbackRoutes from "./routes/feedback";
 
 dotenv.config()
 
@@ -24,6 +21,7 @@ app.use(morgan('dev'))
 app.use(express.json())
 
 // API routes
+app.use("/api/v1/feedback", feedbackRoutes);
 app.use("/api/v1/performance-reviews", performanceReviewRoutes);
 app.use("/api/v1/review-cycles", reviewCycleRoutes);
 app.use('/api/v1/auth', authRoutes)
