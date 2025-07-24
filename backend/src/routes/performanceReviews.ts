@@ -1,12 +1,13 @@
 import express from "express";
 import { authenticateUser } from "../middleware/auth";
 import { supabase } from "../utils/supabaseClient";
+import { sendEmail } from "../utils/sendEmail";
 
 const router = express.Router();
 
 // POST /api/v1/performance-reviews
 router.post("/", authenticateUser, async (req, res) => {
-  const reviewer_id = res.locals.user.id;
+  const reviewerId = res.locals.user.id;
   const {
     employee_id,
     cycle_id,
@@ -21,19 +22,15 @@ router.post("/", authenticateUser, async (req, res) => {
     goals_next_period,
     manager_comments,
     employee_comments,
-    status = "draft"
   } = req.body;
 
-  if (!employee_id || !cycle_id || !review_type) {
-    return res.status(400).json({ error: "Missing required fields" });
-  }
-
-  const { data, error } = await supabase
+  // 1. Insert the performance review
+  const { data: review, error } = await supabase
     .from("performance_reviews")
     .insert([
       {
         employee_id,
-        reviewer_id,
+        reviewer_id: reviewerId,
         cycle_id,
         review_type,
         overall_score,
@@ -46,61 +43,43 @@ router.post("/", authenticateUser, async (req, res) => {
         goals_next_period,
         manager_comments,
         employee_comments,
-        status
-      }
+      },
     ])
     .select()
     .single();
 
-  if (error) return res.status(400).json({ error: error.message });
+  if (error) return res.status(500).json({ error: error.message });
 
-  res.status(201).json(data);
-});
-
-// GET /api/v1/performance-reviews
-router.get("/", authenticateUser, async (req, res) => {
-  const userId = res.locals.user.id;
-
-  const { data, error } = await supabase
-    .from("performance_reviews")
-    .select("*")
-    .or(`employee_id.eq.${userId},reviewer_id.eq.${userId}`)
-    .order("created_at", { ascending: false });
-
-  if (error) return res.status(400).json({ error: error.message });
-
-  res.status(200).json(data);
-});
-
-// PUT /api/v1/performance-reviews/:id
-router.put("/:id", authenticateUser, async (req, res) => {
-  const { id } = req.params;
-  const updates = { ...req.body, updated_at: new Date().toISOString() };
-
-  const { data, error } = await supabase
-    .from("performance_reviews")
-    .update(updates)
-    .eq("id", id)
-    .select()
+  // 2. Fetch employee profile
+  const { data: employeeProfile, error: profileError } = await supabase
+    .from("user_profiles")
+    .select("first_name, last_name")
+    .eq("id", employee_id)
     .single();
 
-  if (error) return res.status(400).json({ error: error.message });
+  if (profileError || !employeeProfile) {
+    console.warn("Employee profile not found for email notification.");
+    return res.status(201).json({ review, warning: "Profile not found for email." });
+  }
 
-  res.status(200).json(data);
-});
+  // 3. Get email via Supabase Admin API
+  const { data: authUser } = await supabase.auth.admin.getUserById(employee_id);
+  const employeeEmail = authUser?.user?.email;
 
-// DELETE /api/v1/performance-reviews/:id
-router.delete("/:id", authenticateUser, async (req, res) => {
-  const { id } = req.params;
+  if (employeeEmail) {
+    const fullName = `${employeeProfile.first_name} ${employeeProfile.last_name}`;
+    try {
+      await sendEmail(
+        employeeEmail,
+        "📋 New Performance Review Assigned",
+        `<p>Hi ${fullName},<br /><br />You have a new performance review assigned. Please complete it before the deadline.</p>`
+      );
+    } catch (err) {
+      console.error("❌ Failed to send review email:", err);
+    }
+  }
 
-  const { error } = await supabase
-    .from("performance_reviews")
-    .delete()
-    .eq("id", id);
-
-  if (error) return res.status(400).json({ error: error.message });
-
-  res.status(204).send();
+  return res.status(201).json({ review });
 });
 
 export default router;
