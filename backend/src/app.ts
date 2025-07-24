@@ -20,9 +20,9 @@ import attendanceRoutes from "./routes/attendance"
 import calendarRoutes from "./routes/calendar"
 import adminAnalyticsRoutes from "./routes/adminAnalytics"
 import adminDashboardRoutes from "./routes/adminDashboard"
-import notificationRoutes from "./routes/notifications";
-
-
+import notificationRoutes from "./routes/notifications"
+import adminAttendanceRoutes from "./routes/adminAttendance"
+import reportRoutes from "./routes/reports";
 
 dotenv.config()
 
@@ -34,6 +34,8 @@ app.use(morgan('dev'))
 app.use(express.json())
 
 // API routes
+app.use("/api/v1/reports", reportRoutes);
+app.use("/api/v1/admin", adminAttendanceRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
 app.use("/api/v1/admin/dashboard", adminDashboardRoutes);
 app.use("/api/v1/admin", adminAnalyticsRoutes);

@@ -84,3 +84,4 @@ router.get("/charts/attendance", authenticateUser, async (req, res) => {
 });
 
 export default router;
+  
