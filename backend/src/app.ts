@@ -12,12 +12,7 @@ import performanceReviewRoutes from "./routes/performanceReviews"
 import feedbackRoutes from "./routes/feedback"
 import metricsRoutes from "./routes/performanceMetrics"
 import aiInsightsRoutes from "./routes/aiInsights"
-import peerReviewsRoutes from "./routes/peerReviews"
-
-
-
-
-
+import peerReviewsRoutes from "./routes/peerReviews"; // ✅ this is case-sensitive!
 
 dotenv.config()
 
