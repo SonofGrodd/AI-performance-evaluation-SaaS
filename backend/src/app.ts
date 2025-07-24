@@ -11,7 +11,10 @@ import reviewCycleRoutes from "./routes/reviewCycles"
 import performanceReviewRoutes from "./routes/performanceReviews"
 import feedbackRoutes from "./routes/feedback"
 import metricsRoutes from "./routes/performanceMetrics"
-import aiInsightsRoutes from "./routes/aiInsights";
+import aiInsightsRoutes from "./routes/aiInsights"
+import peerReviewsRoutes from "./routes/peerReviews"
+
+
 
 
 
@@ -26,6 +29,7 @@ app.use(morgan('dev'))
 app.use(express.json())
 
 // API routes
+app.use("/api/v1/peer-reviews", peerReviewsRoutes);
 app.use("/api/v1/ai-insights", aiInsightsRoutes);
 app.use("/api/v1/performance-metrics", metricsRoutes);
 app.use("/api/v1/feedback", feedbackRoutes);
