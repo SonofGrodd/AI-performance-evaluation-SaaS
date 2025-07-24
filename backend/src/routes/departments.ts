@@ -28,6 +28,43 @@ router.post('/', requireAuth, async (req, res) => {
 
   return res.status(201).json(dept)
 })
+// DELETE /api/v1/departments/:id
+router.delete("/:id", requireAuth, async (req, res) => {
+  const { id } = req.params;
+
+  const { error } = await supabase
+    .from("departments")
+    .delete()
+    .eq("id", id);
+
+  if (error) return res.status(400).json({ error: error.message });
+
+  res.status(204).send(); // No Content
+});
+
+// PUT /api/v1/departments/:id
+router.put("/:id", requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const { name } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ error: "Department name is required" });
+  }
+
+  const { data, error } = await supabase
+    .from("departments")
+    .update({
+      name,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) return res.status(400).json({ error: error.message });
+
+  res.status(200).json(data);
+});
 
 // Get all departments for current company
 router.get('/', requireAuth, async (req, res) => {
