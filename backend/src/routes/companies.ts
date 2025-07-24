@@ -3,9 +3,49 @@ import { supabase } from '../utils/supabaseClient'
 import { requireAuth } from '../middleware/auth'
 
 const router = express.Router()
+// DELETE /api/v1/companies/:id
+router.delete("/:id", requireAuth, async (req, res) => {
+  const { id } = req.params;
+
+  const { error } = await supabase
+    .from("companies")
+    .delete()
+    .eq("id", id);
+
+  if (error) return res.status(400).json({ error: error.message });
+
+  res.status(204).send(); // No Content
+});
+
+// PUT /api/v1/companies/:id
+router.put("/:id", requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const { name, domain, industry, employee_count, subscription_plan } = req.body;
+console.log("PUT /api/v1/companies/:id hit");
+
+  const { data, error } = await supabase
+    .from("companies")
+    .update({
+      name,
+      domain,
+      industry,
+      employee_count,
+      subscription_plan,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) return res.status(400).json({ error: error.message });
+
+  res.status(200).json(data);
+});
+
 
 // Create a new company and set current user as admin
 router.post('/', requireAuth, async (req, res) => {
+     console.log("📥 Incoming request to /api/v1/companies");
   const user = (req as any).user
   const { name, domain, industry, plan } = req.body
 
