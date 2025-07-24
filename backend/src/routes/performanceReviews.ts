@@ -4,36 +4,49 @@ import { supabase } from "../utils/supabaseClient";
 
 const router = express.Router();
 
-// POST /api/v1/review-cycles
+// POST /api/v1/performance-reviews
 router.post("/", authenticateUser, async (req, res) => {
-  const { name, description, start_date, end_date, review_type = "quarterly", status = "draft" } = req.body;
-  const created_by = res.locals.user.id;
+  const reviewer_id = res.locals.user.id;
+  const {
+    employee_id,
+    cycle_id,
+    review_type,
+    overall_score,
+    goals_score,
+    skills_score,
+    collaboration_score,
+    communication_score,
+    strengths,
+    areas_for_improvement,
+    goals_next_period,
+    manager_comments,
+    employee_comments,
+    status = "draft"
+  } = req.body;
 
-  if (!name || !start_date || !end_date) {
+  if (!employee_id || !cycle_id || !review_type) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
-  // Fetch user's company
-  const { data: profile, error: profileError } = await supabase
-    .from("user_profiles")
-    .select("company_id")
-    .eq("id", created_by)
-    .single();
-
-  if (profileError || !profile) return res.status(400).json({ error: "User profile not found" });
-
   const { data, error } = await supabase
-    .from("review_cycles")
+    .from("performance_reviews")
     .insert([
       {
-        company_id: profile.company_id,
-        name,
-        description,
-        start_date,
-        end_date,
+        employee_id,
+        reviewer_id,
+        cycle_id,
         review_type,
-        status,
-        created_by
+        overall_score,
+        goals_score,
+        skills_score,
+        collaboration_score,
+        communication_score,
+        strengths,
+        areas_for_improvement,
+        goals_next_period,
+        manager_comments,
+        employee_comments,
+        status
       }
     ])
     .select()
@@ -44,36 +57,28 @@ router.post("/", authenticateUser, async (req, res) => {
   res.status(201).json(data);
 });
 
-// GET /api/v1/review-cycles
+// GET /api/v1/performance-reviews
 router.get("/", authenticateUser, async (req, res) => {
   const userId = res.locals.user.id;
 
-  const { data: profile, error: profileError } = await supabase
-    .from("user_profiles")
-    .select("company_id")
-    .eq("id", userId)
-    .single();
-
-  if (profileError || !profile) return res.status(400).json({ error: "User profile not found" });
-
   const { data, error } = await supabase
-    .from("review_cycles")
+    .from("performance_reviews")
     .select("*")
-    .eq("company_id", profile.company_id)
-    .order("start_date", { ascending: false });
+    .or(`employee_id.eq.${userId},reviewer_id.eq.${userId}`)
+    .order("created_at", { ascending: false });
 
   if (error) return res.status(400).json({ error: error.message });
 
   res.status(200).json(data);
 });
 
-// PUT /api/v1/review-cycles/:id
+// PUT /api/v1/performance-reviews/:id
 router.put("/:id", authenticateUser, async (req, res) => {
   const { id } = req.params;
   const updates = { ...req.body, updated_at: new Date().toISOString() };
 
   const { data, error } = await supabase
-    .from("review_cycles")
+    .from("performance_reviews")
     .update(updates)
     .eq("id", id)
     .select()
@@ -84,12 +89,12 @@ router.put("/:id", authenticateUser, async (req, res) => {
   res.status(200).json(data);
 });
 
-// DELETE /api/v1/review-cycles/:id
+// DELETE /api/v1/performance-reviews/:id
 router.delete("/:id", authenticateUser, async (req, res) => {
   const { id } = req.params;
 
   const { error } = await supabase
-    .from("review_cycles")
+    .from("performance_reviews")
     .delete()
     .eq("id", id);
 

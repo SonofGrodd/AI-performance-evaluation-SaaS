@@ -46,7 +46,7 @@ console.log("PUT /api/v1/companies/:id hit");
 // Create a new company and set current user as admin
 router.post('/', requireAuth, async (req, res) => {
      console.log("📥 Incoming request to /api/v1/companies");
-  const user = (req as any).user
+  const user = req.user!;
   const { name, domain, industry, plan } = req.body
 
   const { data: company, error: companyError } = await supabase
@@ -74,7 +74,7 @@ router.post('/', requireAuth, async (req, res) => {
 
 // Get current user's company
 router.get('/me', requireAuth, async (req, res) => {
-  const user = (req as any).user
+  const user = req.user!;
 
   const { data: profile, error: profileError } = await supabase
     .from('user_profiles')

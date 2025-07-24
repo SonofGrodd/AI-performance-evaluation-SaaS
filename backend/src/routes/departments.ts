@@ -6,7 +6,7 @@ const router = express.Router()
 
 // Add a department
 router.post('/', requireAuth, async (req, res) => {
-  const user = (req as any).user
+  const user = req.user!;
   const { name } = req.body
 
   // Get user's company
@@ -68,7 +68,7 @@ router.put("/:id", requireAuth, async (req, res) => {
 
 // Get all departments for current company
 router.get('/', requireAuth, async (req, res) => {
-  const user = (req as any).user
+  const user = req.user!;
 
   const { data: profile, error: profileError } = await supabase
     .from('user_profiles')
