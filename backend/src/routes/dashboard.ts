@@ -1,11 +1,12 @@
 import express from "express";
 import { authenticateUser } from "../middleware/auth";
+import { requireRole } from "../middleware/roles";
 import { supabase } from "../utils/supabaseClient";
 
 const router = express.Router();
 
-// GET /api/v1/dashboard/employee
-router.get("/employee", authenticateUser, async (req, res) => {
+// Employee Dashboard
+router.get("/employee", authenticateUser, requireRole(["employee"]), async (req, res) => {
   const userId = res.locals.user.id;
 
   const { data: profile, error: profileError } = await supabase
@@ -14,9 +15,7 @@ router.get("/employee", authenticateUser, async (req, res) => {
     .eq("id", userId)
     .single();
 
-  if (profileError || !profile) {
-    return res.status(404).json({ error: "User profile not found" });
-  }
+  if (profileError || !profile) return res.status(404).json({ error: "User profile not found" });
 
   const { id, company_id } = profile;
 
@@ -67,8 +66,8 @@ router.get("/employee", authenticateUser, async (req, res) => {
   });
 });
 
-// GET /api/v1/dashboard/manager
-router.get("/manager", authenticateUser, async (req, res) => {
+// Manager Dashboard
+router.get("/manager", authenticateUser, requireRole(["manager"]), async (req, res) => {
   const userId = res.locals.user.id;
 
   const { data: team } = await supabase
@@ -85,7 +84,7 @@ router.get("/manager", authenticateUser, async (req, res) => {
   const { data: reviews } = await supabase
     .from("performance_reviews")
     .select("status")
-    .in("employee_id", Array.isArray(teamIds) ? teamIds : []);
+    .in("employee_id", teamIds || []);
 
   const reviewStats = reviews?.reduce(
     (acc, r) => {
@@ -98,7 +97,7 @@ router.get("/manager", authenticateUser, async (req, res) => {
   const { data: feedbacks } = await supabase
     .from("feedback")
     .select("sentiment_label")
-    .in("employee_id", Array.isArray(teamIds) ? teamIds : []);
+    .in("employee_id", teamIds || []);
 
   const sentimentSummary = feedbacks?.reduce(
     (acc, f) => {
@@ -113,7 +112,7 @@ router.get("/manager", authenticateUser, async (req, res) => {
   const { data: alerts } = await supabase
     .from("ai_insights")
     .select("*")
-    .in("employee_id", Array.isArray(teamIds) ? teamIds : [])
+    .in("employee_id", teamIds || [])
     .eq("is_active", true);
 
   res.json({
