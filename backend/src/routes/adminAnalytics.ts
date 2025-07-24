@@ -4,84 +4,83 @@ import { supabase } from "../utils/supabaseClient";
 
 const router = express.Router();
 
-// GET /api/v1/admin/attendance-summary
-router.get("/attendance-summary", authenticateUser, async (req, res) => {
+// GET /api/v1/admin/charts/sentiment
+router.get("/charts/sentiment", authenticateUser, async (req, res) => {
   const userId = res.locals.user.id;
 
-  // 1. Get current user's company_id
+  const { data: profile, error: profileError } = await supabase
+    .from("user_profiles")
+    .select("company_id")
+    .eq("id", userId)
+    .single();
+
+  if (profileError || !profile) {
+    return res.status(404).json({ error: "Admin profile not found" });
+  }
+
+  const { data: feedbacks } = await supabase
+    .from("feedback")
+    .select("sentiment_label")
+    .eq("company_id", profile.company_id);
+
+  const summary = { positive: 0, neutral: 0, negative: 0 };
+
+  feedbacks?.forEach(f => {
+    if (["positive", "neutral", "negative"].includes(f.sentiment_label)) {
+      summary[f.sentiment_label as "positive" | "neutral" | "negative"] += 1;
+    }
+  });
+
+  res.json(summary);
+});
+
+// GET /api/v1/admin/charts/reviews
+router.get("/charts/reviews", authenticateUser, async (req, res) => {
+  const userId = res.locals.user.id;
+
   const { data: profile } = await supabase
     .from("user_profiles")
     .select("company_id")
     .eq("id", userId)
     .single();
 
-  if (!profile) return res.status(404).json({ error: "Admin profile not found" });
+  const { data: reviews } = await supabase
+    .from("performance_reviews")
+    .select("status")
+    .eq("company_id", profile?.company_id);
 
-  // 2. Fetch all attendance logs for the company
-  const { data: logs, error } = await supabase
-    .from("attendance_logs")
-    .select("employee_id, clock_in, date")
-    .eq("company_id", profile.company_id);
+  const result: Record<string, number> = {};
 
-  if (error) return res.status(500).json({ error: error.message });
-
-  // 3. Process attendance into metrics
-  const summary: Record<string, { late: number; absent: number; averageTime?: string }> = {};
-
-  const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const today = now.toISOString().split("T")[0];
-
-  // Build set of present days by employee
-  const logsByEmployee: Record<string, { dates: Set<string>; times: number[] }> = {};
-
-  logs?.forEach(log => {
-    const dateStr = new Date(log.date).toISOString().split("T")[0];
-    if (!logsByEmployee[log.employee_id]) {
-      logsByEmployee[log.employee_id] = { dates: new Set(), times: [] };
-    }
-
-    logsByEmployee[log.employee_id].dates.add(dateStr);
-
-    if (log.clock_in) {
-      const time = new Date(log.clock_in).getHours() + new Date(log.clock_in).getMinutes() / 60;
-      logsByEmployee[log.employee_id].times.push(time);
-    }
+  reviews?.forEach(r => {
+    result[r.status] = (result[r.status] || 0) + 1;
   });
 
-  // Generate stats
-  for (const [employeeId, data] of Object.entries(logsByEmployee)) {
-    const workingDays = getWeekdaysInMonth(monthStart, now);
-    const presentDays = data.dates.size;
-    const absent = workingDays - presentDays;
-    const late = data.times.filter(t => t > 9).length;
-
-    const avgTime = data.times.length
-      ? (data.times.reduce((a, b) => a + b, 0) / data.times.length).toFixed(2)
-      : undefined;
-
-    summary[employeeId] = {
-      late,
-      absent,
-      averageTime: avgTime,
-    };
-  }
-
-  res.json(summary);
+  res.json(result);
 });
 
-// Utility: count weekdays
-function getWeekdaysInMonth(start: Date, end: Date): number {
-  let count = 0;
-  const date = new Date(start);
+// GET /api/v1/admin/charts/attendance
+router.get("/charts/attendance", authenticateUser, async (req, res) => {
+  const userId = res.locals.user.id;
 
-  while (date <= end) {
-    const day = date.getDay();
-    if (day !== 0 && day !== 6) count++;
-    date.setDate(date.getDate() + 1);
-  }
+  const { data: profile } = await supabase
+    .from("user_profiles")
+    .select("company_id")
+    .eq("id", userId)
+    .single();
 
-  return count;
-}
+  const { data: attendance } = await supabase
+    .from("attendance_logs")
+    .select("clock_in_time")
+    .eq("company_id", profile?.company_id);
+
+  const dailySummary: Record<string, number> = {};
+
+  attendance?.forEach((entry) => {
+    const day = new Date(entry.clock_in_time).toISOString().split("T")[0];
+    dailySummary[day] = (dailySummary[day] || 0) + 1;
+  });
+
+  res.json(dailySummary);
+});
 
 export default router;

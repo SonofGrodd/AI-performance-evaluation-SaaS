@@ -8,42 +8,78 @@ const router = express.Router();
 router.get("/", authenticateUser, async (req, res) => {
   const userId = res.locals.user.id;
 
-  const { data: profile } = await supabase
+  // Fetch the user's profile to get the company_id
+  const { data: profile, error: profileError } = await supabase
     .from("user_profiles")
     .select("company_id, role")
     .eq("id", userId)
     .single();
 
-  if (!profile || !["admin", "hr"].includes(profile.role)) {
-    return res.status(403).json({ error: "Access denied" });
+  if (profileError || !profile || profile.role !== "admin") {
+    return res.status(403).json({ error: "Unauthorized" });
   }
 
-  const companyId = profile.company_id;
+  const { company_id } = profile;
 
-  const [{ count: employeeCount }, { count: managerCount }, { data: reviews }, { data: feedback }] = await Promise.all([
-    supabase.from("user_profiles").select("*", { count: "exact", head: true }).eq("company_id", companyId).eq("role", "employee"),
-    supabase.from("user_profiles").select("*", { count: "exact", head: true }).eq("company_id", companyId).eq("role", "manager"),
-    supabase.from("performance_reviews").select("status").eq("company_id", companyId),
-    supabase.from("feedback").select("sentiment_label").eq("employee_id", "inferred"), // covered by RLS
-  ]);
+  // Attendance summary
+  const { data: attendance } = await supabase
+    .from("attendance")
+    .select("status, count:status")
+    .eq("company_id", company_id)
+    .group("status");
 
-  const reviewStatusCount = reviews?.reduce((acc, r) => {
-    acc[r.status] = (acc[r.status] || 0) + 1;
+  const attendanceStats = attendance?.reduce((acc, row) => {
+    acc[row.status] = row.count;
     return acc;
   }, {} as Record<string, number>);
 
-  const sentimentBreakdown = feedback?.reduce((acc, f) => {
-    if (["positive", "neutral", "negative"].includes(f.sentiment_label)) {
-      acc[f.sentiment_label as "positive" | "neutral" | "negative"] += 1;
-    }
-    return acc;
-  }, { positive: 0, neutral: 0, negative: 0 });
+  // Review status summary
+  const { data: reviewStatus } = await supabase
+    .from("performance_reviews")
+    .select("status, count:status")
+    .eq("company_id", company_id)
+    .group("status");
 
-  res.json({
-    employeeCount,
-    managerCount,
-    reviewStatusCount,
-    sentimentBreakdown,
+  const reviewStats = reviewStatus?.reduce((acc, row) => {
+    acc[row.status] = row.count;
+    return acc;
+  }, {} as Record<string, number>);
+
+  // Sentiment summary
+  const { data: sentiments } = await supabase
+    .from("feedback")
+    .select("sentiment_label")
+    .eq("company_id", company_id);
+
+  const sentimentSummary = sentiments?.reduce(
+    (acc, f) => {
+      if (["positive", "neutral", "negative"].includes(f.sentiment_label)) {
+        acc[f.sentiment_label as "positive" | "neutral" | "negative"] += 1;
+      }
+      return acc;
+    },
+    { positive: 0, neutral: 0, negative: 0 }
+  );
+
+  // Flagged feedback & active alerts
+  const { data: flaggedFeedback } = await supabase
+    .from("feedback")
+    .select("*")
+    .eq("company_id", company_id)
+    .eq("is_flagged", true);
+
+  const { data: aiAlerts } = await supabase
+    .from("ai_insights")
+    .select("*")
+    .eq("company_id", company_id)
+    .eq("is_active", true);
+
+  return res.json({
+    attendanceStats,
+    reviewStats,
+    sentimentSummary,
+    flaggedFeedback,
+    aiAlerts,
   });
 });
 
