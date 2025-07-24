@@ -10,7 +10,10 @@ import authRoutes from './routes/auth'
 import reviewCycleRoutes from "./routes/reviewCycles"
 import performanceReviewRoutes from "./routes/performanceReviews"
 import feedbackRoutes from "./routes/feedback"
-import metricsRoutes from "./routes/performanceMetrics";
+import metricsRoutes from "./routes/performanceMetrics"
+import aiInsightsRoutes from "./routes/aiInsights";
+
+
 
 
 dotenv.config()
@@ -23,6 +26,7 @@ app.use(morgan('dev'))
 app.use(express.json())
 
 // API routes
+app.use("/api/v1/ai-insights", aiInsightsRoutes);
 app.use("/api/v1/performance-metrics", metricsRoutes);
 app.use("/api/v1/feedback", feedbackRoutes);
 app.use("/api/v1/performance-reviews", performanceReviewRoutes);
