@@ -5,57 +5,38 @@ import { supabase } from "../utils/supabaseClient";
 
 const router = express.Router();
 
-// POST /api/v1/feedback - Submit anonymous feedback (employees only)
-router.post("/", authenticateUser, requireRole(["employee"]), async (req, res) => {
-  const senderId = res.locals.user.id;
-  const { recipientId, content, sentiment_label } = req.body;
+// POST /api/v1/feedback
+router.post("/", authenticateUser, requireRole(["manager"]), async (req, res) => {
+  const { employee_id, message, sentiment_label } = req.body;
+  const sender_id = res.locals.user.id;
 
-  if (!recipientId || !content) {
-    return res.status(400).json({ error: "Recipient and content are required." });
-  }
+  const { data, error } = await supabase.from("feedback").insert([
+    {
+      employee_id,
+      sender_id,
+      message,
+      sentiment_label,
+    },
+  ]);
 
-  const { error } = await supabase.from("feedback").insert({
-    sender_id: senderId,
-    employee_id: recipientId,
-    content,
-    sentiment_label,
-    is_anonymous: true,
-  });
+  if (error) return res.status(400).json({ error: error.message });
 
-  if (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Failed to submit feedback." });
-  }
-
-  res.json({ message: "Feedback submitted anonymously." });
+  res.status(201).json({ message: "Feedback submitted", data });
 });
 
-// GET /api/v1/feedback/my-feedback - Get feedback for logged-in employee
-router.get("/my-feedback", authenticateUser, requireRole(["employee"]), async (req, res) => {
+// GET /api/v1/feedback
+router.get("/", authenticateUser, requireRole(["manager", "employee"]), async (req, res) => {
   const userId = res.locals.user.id;
 
   const { data, error } = await supabase
     .from("feedback")
     .select("*")
-    .eq("employee_id", userId);
+    .eq("employee_id", userId)
+    .order("created_at", { ascending: false });
 
-  if (error) return res.status(500).json({ error: "Failed to fetch feedback." });
+  if (error) return res.status(400).json({ error: error.message });
 
-  res.json(data);
-});
-
-// GET /api/v1/feedback/for/:employeeId - Managers can fetch feedback for team members
-router.get("/for/:employeeId", authenticateUser, requireRole(["manager"]), async (req, res) => {
-  const { employeeId } = req.params;
-
-  const { data, error } = await supabase
-    .from("feedback")
-    .select("*")
-    .eq("employee_id", employeeId);
-
-  if (error) return res.status(500).json({ error: "Failed to fetch feedback." });
-
-  res.json(data);
+  res.json({ feedback: data });
 });
 
 export default router;
