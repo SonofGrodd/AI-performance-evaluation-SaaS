@@ -1,13 +1,13 @@
 import express from "express";
-import { authenticateUser } from "../middleware/authMiddleware";
 import { supabase } from "../utils/supabaseClient";
+import { requireAuth } from "../middleware/auth";
 
 const router = express.Router();
 
 // POST /api/v1/review-cycles
-router.post("/", authenticateUser, async (req, res) => {
+router.post("/", requireAuth, async (req, res) => {
   const { name, description, start_date, end_date, review_type } = req.body;
-  const userId = res.locals.user.id;
+  const userId = (req as any).user.id;
 
   // Fetch the user's company_id
   const { data: profile, error: profileError } = await supabase
@@ -40,8 +40,8 @@ router.post("/", authenticateUser, async (req, res) => {
 });
 
 // GET /api/v1/review-cycles
-router.get("/", authenticateUser, async (req, res) => {
-  const userId = res.locals.user.id;
+router.get("/", requireAuth, async (req, res) => {
+  const userId = (req as any).user.id;
 
   const { data: profile, error: profileError } = await supabase
     .from("user_profiles")
@@ -63,7 +63,7 @@ router.get("/", authenticateUser, async (req, res) => {
 });
 
 // PATCH /api/v1/review-cycles/:id/status
-router.patch("/:id/status", authenticateUser, async (req, res) => {
+router.patch("/:id/status", requireAuth, async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
 
