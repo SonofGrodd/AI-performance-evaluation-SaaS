@@ -19,7 +19,7 @@ Fredan is a scalable SaaS platform that empowers companies to measure employee p
 
 ## ⚙️ Tech Stack
 
-| Layer      | Technology                            |
+| Layer      | Technology                             |
 |------------|----------------------------------------|
 | Frontend   | React, TypeScript, Tailwind CSS, Vite  |
 | Backend    | Node.js, Express, Supabase, PostgreSQL |
@@ -41,4 +41,4 @@ Fredan/
 =======
 └── package.json # Project root metadata (if needed)
 
->>>>>>> bbe7e44dac071476dac895f4c12f4797b50756dd
+
