@@ -23,7 +23,9 @@ import adminDashboardRoutes from "./routes/adminDashboard"
 import notificationRoutes from "./routes/notifications"
 import adminAttendanceRoutes from "./routes/adminAttendance"
 import reportRoutes from "./routes/reports"
-import thirdPartyRoutes from "./routes/thirdParty";
+import thirdPartyRoutes from "./routes/thirdParty"
+
+
 
 dotenv.config()
 
@@ -36,6 +38,7 @@ app.use(express.json({ limit: "1mb" }));
 
 
 // API routes
+app.use("/api/v1/skill-tests", skillTestsRoutes); 
 app.use("/api/v1/third-party", thirdPartyRoutes);
 app.use("/api/v1/reports", reportRoutes);
 app.use("/api/v1/admin", adminAttendanceRoutes);
