@@ -1,62 +1,62 @@
 import express from "express";
 import { authenticateUser } from "../middleware/auth";
+import { requireRole } from "../middleware/roles";
 import { supabase } from "../utils/supabaseClient";
 
 const router = express.Router();
 
-// POST /api/v1/peer-reviews
-router.post("/", authenticateUser, async (req, res) => {
-  const { employee_id, feedback_text } = req.body;
-  const reviewer_id = res.locals.user.id;
+/**
+ * POST /api/v1/peer-reviews
+ * Employee-only: Submit a peer review (can be anonymous)
+ */
+router.post(
+  "/",
+  authenticateUser,
+  requireRole(["employee"]),
+  async (req, res) => {
+    const { id: reviewerId } = res.locals.user;
+    const { reviewee_id, review_text, is_anonymous } = req.body;
 
-  if (!employee_id || !feedback_text) {
-    return res.status(400).json({ error: "employee_id and feedback_text are required" });
-  }
-
-  const { data, error } = await supabase
-    .from("feedback")
-    .insert([
+    const { data, error } = await supabase.from("peer_reviews").insert([
       {
-        employee_id,
-        reviewer_id,
-        feedback_text,
-        feedback_type: "peer",
-        is_anonymous: true,
+        reviewerId,
+        reviewee_id,
+        review_text,
+        is_anonymous,
       },
-    ])
-    .select()
-    .single();
+    ]);
 
-  if (error) return res.status(500).json({ error: error.message });
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
 
-  res.status(201).json(data);
-});
+    res.status(201).json({ message: "Peer review submitted", data });
+  }
+);
 
-// GET /api/v1/peer-reviews
-router.get("/", authenticateUser, async (req, res) => {
-  const reviewerId = res.locals.user.id;
+/**
+ * GET /api/v1/peer-reviews/:employee_id
+ * Manager-only: View all peer reviews for an employee
+ */
+router.get(
+  "/:employee_id",
+  authenticateUser,
+  requireRole(["manager"]),
+  async (req, res) => {
+    const { employee_id } = req.params;
 
-  const { data, error } = await supabase
-    .from("feedback")
-    .select("*")
-    .eq("reviewer_id", reviewerId)
-    .eq("feedback_type", "peer")
-    .eq("is_anonymous", true);
+    const { data, error } = await supabase
+      .from("peer_reviews")
+      .select("id, review_text, is_anonymous, created_at")
+      .eq("reviewee_id", employee_id)
+      .order("created_at", { ascending: false });
 
-  if (error) return res.status(500).json({ error: error.message });
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
 
-  res.json(data);
-});
-
-// DELETE /api/v1/peer-reviews/:id
-router.delete("/:id", authenticateUser, async (req, res) => {
-  const { id } = req.params;
-
-  const { error } = await supabase.from("feedback").delete().eq("id", id);
-
-  if (error) return res.status(500).json({ error: error.message });
-
-  res.json({ message: "Deleted successfully" });
-});
+    res.json(data);
+  }
+);
 
 export default router;
