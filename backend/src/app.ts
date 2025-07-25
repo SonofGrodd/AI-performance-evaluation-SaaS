@@ -25,8 +25,6 @@ import adminAttendanceRoutes from "./routes/adminAttendance"
 import reportRoutes from "./routes/reports"
 import thirdPartyRoutes from "./routes/thirdParty";
 
-
-
 dotenv.config()
 
 const app = express()
