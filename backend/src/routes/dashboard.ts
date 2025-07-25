@@ -6,7 +6,7 @@ import { supabase } from "../utils/supabaseClient";
 
 const router = express.Router();
 
-/**
+/*
  * GET /api/v1/dashboard/employee
  * Employee-only: View personal dashboard with latest review, feedback sentiment, and AI insights
  */
