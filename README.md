@@ -36,4 +36,9 @@ Fredan/
 ├── frontend/ # React + Tailwind client app
 ├── .env # Root-level environment file (optional)
 ├── README.md # Project overview
+<<<<<<< HEAD
 └── package.json # Project root metadata (if needed)
+=======
+└── package.json # Project root metadata (if needed)
+
+>>>>>>> bbe7e44dac071476dac895f4c12f4797b50756dd
