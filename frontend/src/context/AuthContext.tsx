@@ -1,34 +1,47 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { supabase } from "../utils/supabaseClient";
-import type { User } from "@supabase/supabase-js";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
 
-interface AuthContextType {
-  user: User | null;
-  token: string | null;
+type AuthContextType = {
+  user: string | null;
+  role: "employee" | "manager" | null;
   loading: boolean;
-}
+  login: (user: string, role: "employee" | "manager") => void;
+  logout: () => void;
+};
 
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<string | null>(null);
+  const [role, setRole] = useState<"employee" | "manager" | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setToken(session?.access_token ?? null);
+    // Example: Replace with real auth check
+    const timeout = setTimeout(() => {
       setLoading(false);
-    });
+    }, 1000);
 
-    return () => subscription.unsubscribe();
+    return () => clearTimeout(timeout);
   }, []);
 
+  const login = (user: string, role: "employee" | "manager") => {
+    setUser(user);
+    setRole(role);
+  };
+
+  const logout = () => {
+    setUser(null);
+    setRole(null);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, loading }}>
+    <AuthContext.Provider value={{ user, role, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
@@ -36,6 +49,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used inside AuthProvider");
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
   return context;
 };
