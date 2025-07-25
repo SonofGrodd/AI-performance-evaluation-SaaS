@@ -1,60 +1,108 @@
 import express from "express";
 import { authenticateUser } from "../middleware/auth";
+import { requireRole } from "../middleware/roles";
 import { supabase } from "../utils/supabaseClient";
 
 const router = express.Router();
 
-// POST /api/v1/attendance/clock-in
-router.post("/clock-in", authenticateUser, async (req, res) => {
-  const userId = res.locals.user.id;
+/**
+ * POST /api/v1/attendance/clock-in
+ * Employee-only: Clock in for the day
+ */
+router.post(
+  "/clock-in",
+  authenticateUser,
+  requireRole(["employee"]),
+  async (req, res) => {
+    const { id: userId } = res.locals.user;
+    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
 
-  const { data: profile } = await supabase
-    .from("user_profiles")
-    .select("company_id")
-    .eq("id", userId)
-    .single();
+    // Check if already clocked in
+    const { data: existing, error: checkError } = await supabase
+      .from("attendance")
+      .select("*")
+      .eq("employee_id", userId)
+      .eq("date", today)
+      .maybeSingle();
 
-  const { error } = await supabase.from("attendance_logs").insert([
-    {
-      employee_id: userId,
-      company_id: profile?.company_id,
-      clock_in: new Date(),
-    },
-  ]);
+    if (checkError) {
+      return res.status(500).json({ error: checkError.message });
+    }
 
-  if (error) return res.status(500).json({ error: error.message });
+    if (existing) {
+      return res.status(400).json({ error: "Already clocked in for today" });
+    }
 
-  res.status(201).json({ message: "Clock-in recorded" });
-});
+    const { data, error } = await supabase.from("attendance").insert([
+      {
+        employee_id: userId,
+        date: today,
+        clock_in_time: new Date().toISOString(),
+      },
+    ]);
 
-// POST /api/v1/attendance/clock-out
-router.post("/clock-out", authenticateUser, async (req, res) => {
-  const userId = res.locals.user.id;
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
 
-  const { data, error } = await supabase
-    .from("attendance_logs")
-    .update({ clock_out: new Date() })
-    .eq("employee_id", userId)
-    .eq("date", new Date().toISOString().split("T")[0]);
+    res.status(201).json({ message: "Clock-in successful", data });
+  }
+);
 
-  if (error) return res.status(500).json({ error: error.message });
+/**
+ * POST /api/v1/attendance/clock-out
+ * Employee-only: Clock out for the day
+ */
+router.post(
+  "/clock-out",
+  authenticateUser,
+  requireRole(["employee"]),
+  async (req, res) => {
+    const { id: userId } = res.locals.user;
+    const today = new Date().toISOString().split("T")[0];
 
-  res.json({ message: "Clock-out recorded" });
-});
+    const { data: attendance, error } = await supabase
+      .from("attendance")
+      .update({ clock_out_time: new Date().toISOString() })
+      .eq("employee_id", userId)
+      .eq("date", today)
+      .is("clock_out_time", null)
+      .select()
+      .single();
 
-// GET /api/v1/attendance/my-logs
-router.get("/my-logs", authenticateUser, async (req, res) => {
-  const userId = res.locals.user.id;
+    if (error || !attendance) {
+      return res
+        .status(400)
+        .json({ error: "Failed to clock out or already clocked out" });
+    }
 
-  const { data, error } = await supabase
-    .from("attendance_logs")
-    .select("*")
-    .eq("employee_id", userId)
-    .order("date", { ascending: false });
+    res.json({ message: "Clock-out successful", data: attendance });
+  }
+);
 
-  if (error) return res.status(500).json({ error: error.message });
+/**
+ * GET /api/v1/attendance/history
+ * Employee-only: View attendance history
+ */
+router.get(
+  "/history",
+  authenticateUser,
+  requireRole(["employee"]),
+  async (req, res) => {
+    const { id: userId } = res.locals.user;
 
-  res.json(data);
-});
+    const { data, error } = await supabase
+      .from("attendance")
+      .select("*")
+      .eq("employee_id", userId)
+      .order("date", { ascending: false });
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    res.json(data);
+  }
+);
 
 export default router;
