@@ -1,36 +1,90 @@
-# Fredan – AI-Powered Employee Assessment Platform
+# Fredan – AI-Powered Employee Performance Assessment Platform
 
-Fredan is a scalable SaaS platform that empowers companies to measure employee performance, gather feedback, manage review cycles, and gain AI-driven insights. It features a powerful backend (FastAPI-style Express server + Supabase) and a modern frontend (React + Tailwind + Vite).
-
----
-
-## 🧠 Key Features
-
-- Custom performance metrics
-- Peer & manager assessments
-- Calendar, attendance & review cycles
-- AI feedback analysis & insights
-- Role-based dashboards
-- Report exporting (CSV/PDF)
-- JWT-based auth with Supabase
-- 3rd-party integrations (Slack, Trello, Jira)
+A production-ready SaaS platform that helps organizations assess, track, and optimize employee performance using intelligent insights, automated feedback systems, and AI-enhanced reports.
 
 ---
 
-## ⚙️ Tech Stack
+## 🚀 Tech Stack
 
-| Layer      | Technology                            |
-|------------|----------------------------------------|
-| Frontend   | React, TypeScript, Tailwind CSS, Vite  |
-| Backend    | Node.js, Express, Supabase, PostgreSQL |
-| Auth       | Supabase JWT, RLS, role-based control  |
-| AI Layer   | OpenAI API for sentiment analysis      |
-| Dev Tools  | Vite, tsx, Postman, GitHub             |
-| Deployment | Vercel (frontend), Railway/Fly.io (API)|
+### 🧱 Frontend
+
+| Layer         | Technology             | Purpose                                               |
+|---------------|------------------------|-------------------------------------------------------|
+| **Framework** | [React](https://reactjs.org/) + [Vite](https://vitejs.dev/) | Fast, modern SPA setup                              |
+| **Styling**   | [Tailwind CSS](https://tailwindcss.com/) | Utility-first styling for responsive design       |
+| **Routing**   | [React Router v6+](https://reactrouter.com/) | Declarative routing and protected pages           |
+| **State Mgt** | React Context API      | Auth and global user state management                 |
+| **Auth Guard**| `ProtectedRoute.tsx`   | Role-based route protection                           |
 
 ---
 
-## 📂 Project Structure
+### 🧠 Backend
+
+| Layer          | Technology                      | Purpose                                               |
+|----------------|----------------------------------|-------------------------------------------------------|
+| **Framework**  | Express + TypeScript            | RESTful API development                              |
+| **Database**   | [Supabase](https://supabase.com/) (PostgreSQL) | Managed SQL + Auth + API               |
+| **Client**     | Supabase JS Client              | DB queries, auth, and admin ops                       |
+| **Middleware** | Custom Auth + RBAC              | Token validation & role-based permissions             |
+| **Security**   | `helmet`, `cors`, `express-rate-limit` | Hardened production server                   |
+| **Docs**       | Postman + markdown              | API testing and endpoint coverage                     |
+| **PDF/CSV**    | `pdfkit`, `fast-csv`            | Report export for performance reviews                 |
+| **Mail**       | `nodemailer`                    | (Optional) Notifications and reminders                |
+| **Admin Seed** | Supabase Admin SDK + ts-node    | Script to onboard initial admin/company               |
+
+---
+
+### ☁️ Deployment Stack
+
+| Component      | Tech/Platform                    | Description                                           |
+|----------------|----------------------------------|-------------------------------------------------------|
+| **Frontend**   | Vercel or Netlify                | Instant deployment of Vite React frontend             |
+| **Backend**    | Render / Railway / Fly.io        | Deploy Express + Supabase integration                 |
+| **Database**   | Supabase                         | Hosted Postgres with Auth + Storage + RLS             |
+| **Secrets**    | `.env` + `dotenv`                | Secure environment configuration                      |
+
+---
+
+## 🔐 Authentication & Roles
+
+- **JWT-based Auth**: via Supabase with expiration + signature checks
+- **Middleware**:
+  - `authenticateUser`: verifies JWT and pulls profile
+  - `requireRole(["manager"])`: route guard for specific roles
+- **Roles**:
+  - `employee`: Can view dashboard, insights, and submit feedback
+  - `manager`: Can access team data, review submissions, and more
+
+---
+
+## 🎯 Core Features
+
+- ✅ **Company & Department Onboarding**
+- ✅ **Performance Reviews** (Create, Update, Delete)
+- ✅ **Calendar + Clock-in/Clock-out Attendance**
+- ✅ **AI Insights & Sentiment Analysis**
+- ✅ **Peer Reviews & Anonymous Feedback**
+- ✅ **Team Dashboards for Managers**
+- ✅ **Admin Dashboard & Analytics**
+- ✅ **Report Exporting (PDF / CSV)**
+- ✅ **Third-party Integration (Slack, Trello, Jira)**
+- ✅ **Notification System**
+- ✅ **Role-based Access Control**
+
+---
+
+## 🧪 Testing
+
+- Postman collections with:
+  - Auth flows
+  - Employee + Manager endpoints
+  - Edge cases (expired token, invalid roles, etc.)
+- Scheduled payload test suite (to be run post-feature)
+
+---
+
+## 📂 Project Structure (Backend)
+
 Fredan/
 ├── backend/ # Express API + Supabase integration
 ├── frontend/ # React + Tailwind client app
