@@ -1,8 +1,38 @@
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import ManagerDashboard from "./pages/ManagerDashboard";
+import { ProtectedRoute, RequireRole } from "./routes/ProtectedRoute";
+
 function App() {
   return (
-    <div className="h-screen flex items-center justify-center bg-gray-100">
-      <h1 className="text-4xl font-bold text-blue-600">Fredan App</h1>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <RequireRole roleRequired="employee">
+                <Dashboard />
+              </RequireRole>
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/manager-dashboard"
+          element={
+            <ProtectedRoute>
+              <RequireRole roleRequired="manager">
+                <ManagerDashboard />
+              </RequireRole>
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </Router>
   );
 }
 
