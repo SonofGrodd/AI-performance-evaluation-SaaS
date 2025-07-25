@@ -7,15 +7,17 @@ const router = express.Router();
 
 /**
  * GET /api/v1/ai-insights
- * Manager-only: Get all active AI insights for their company
+ * Manager-only: Get all active AI insights for their company with filters & pagination
  */
 router.get(
   "/",
   authenticateUser,
   requireRole(["manager"]),
   async (req, res) => {
+    const { limit = 10, offset = 0, employee_id, is_active = true } = req.query;
     const { id: userId } = res.locals.user;
 
+    // Get manager's company ID
     const { data: profile, error: profileError } = await supabase
       .from("user_profiles")
       .select("company_id")
@@ -28,48 +30,23 @@ router.get(
 
     const { company_id } = profile;
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("ai_insights")
-      .select("*")
+      .select("*", { count: "exact" })
       .eq("company_id", company_id)
-      .eq("is_active", true);
+      .order("created_at", { ascending: false })
+      .range(Number(offset), Number(offset) + Number(limit) - 1);
+
+    if (employee_id) query = query.eq("employee_id", employee_id);
+    if (is_active !== undefined) query = query.eq("is_active", is_active === "true");
+
+    const { data, error, count } = await query;
 
     if (error) {
       return res.status(500).json({ error: error.message });
     }
 
-    res.json(data);
-  }
-);
-
-/**
- * GET /api/v1/ai-insights/:employeeId
- * Employee can view their own insights; manager can view anyone's
- */
-router.get(
-  "/:employeeId",
-  authenticateUser,
-  requireRole(["employee", "manager"]),
-  async (req, res) => {
-    const user = res.locals.user;
-    const { employeeId } = req.params;
-
-    if (user.role === "employee" && user.id !== employeeId) {
-      return res.status(403).json({ error: "Access denied" });
-    }
-
-    const { data, error } = await supabase
-      .from("ai_insights")
-      .select("*")
-      .eq("employee_id", employeeId)
-      .eq("is_active", true)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      return res.status(500).json({ error: error.message });
-    }
-
-    res.json({ insights: data });
+    res.json({ data, count });
   }
 );
 
@@ -84,15 +61,19 @@ router.post(
   async (req, res) => {
     const { employee_id, summary, sentiment_score, recommendations } = req.body;
 
-    const { data, error } = await supabase.from("ai_insights").insert([
-      {
-        employee_id,
-        summary,
-        sentiment_score,
-        recommendations,
-        is_active: true,
-      },
-    ]);
+    const { data, error } = await supabase
+      .from("ai_insights")
+      .insert([
+        {
+          employee_id,
+          summary,
+          sentiment_score,
+          recommendations,
+          is_active: true,
+        },
+      ])
+      .select()
+      .single();
 
     if (error) {
       return res.status(500).json({ error: error.message });
