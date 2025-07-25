@@ -1,64 +1,45 @@
 // src/scripts/seedAdmin.ts
-import { supabase } from "../utils/supabaseClient";
 import { supabaseAdmin } from "../utils/supabaseAdminClient";
 
-async function seedAdmin() {
-  const adminEmail = "admin@example.com"; // Change this to your actual user email
-  const companyName = "My Company";
-  const companyDomain = "mycompany.com";
+const adminEmail = "admin@example.com";
 
+const seed = async () => {
   console.log("⏳ Seeding admin user...");
 
-  // 1. Get Supabase Auth user by email using admin client
-  const { data: userList, error: userError } = await supabaseAdmin.auth.admin.listUsers({ email: adminEmail });
+  const { data: users, error: listError } =
+    await supabaseAdmin.auth.admin.listUsers();
 
-  const user = userList?.users?.[0];
-  if (!user) {
-    console.error("❌ Admin user not found in Supabase auth.users");
+  if (listError) throw listError;
+
+  const existing = users.users.find((u) => u.email === adminEmail);
+  if (existing) {
+    console.log("✅ Admin already exists.");
     return;
   }
 
-  const userId = user.id;
+  const { data: user, error: createError } =
+    await supabaseAdmin.auth.admin.createUser({
+      email: adminEmail,
+      password: "admin123",
+      email_confirm: true,
+    });
 
-  // 2. Check if company already exists
-  const { data: existingCompany } = await supabase
-    .from("companies")
-    .select("*")
-    .eq("domain", companyDomain)
-    .single();
+  if (createError) throw createError;
 
-  let companyId = existingCompany?.id;
+  await supabaseAdmin.from("user_profiles").insert([
+    {
+      id: user.user?.id,
+      first_name: "Admin",
+      last_name: "User",
+      company_id: "your-company-id", // Replace
+      role: "manager",
+    },
+  ]);
 
-  // 3. Create company if it doesn't exist
-  if (!companyId) {
-    const { data: newCompany, error: companyError } = await supabase
-      .from("companies")
-      .insert({ name: companyName, domain: companyDomain })
-      .select()
-      .single();
+  console.log("✅ Admin seeded.");
+};
 
-    if (companyError) {
-      console.error("❌ Failed to create company:", companyError.message);
-      return;
-    }
-
-    companyId = newCompany.id;
-  }
-
-  // 4. Promote user to admin
-  const { error: updateError } = await supabase
-    .from("user_profiles")
-    .update({
-      role: "admin",
-      company_id: companyId,
-    })
-    .eq("id", userId);
-
-  if (updateError) {
-    console.error("❌ Failed to update user profile:", updateError.message);
-  } else {
-    console.log("✅ Admin user seeded successfully!");
-  }
-}
-
-seedAdmin();
+seed().catch((err) => {
+  console.error("❌ Seeding failed:", err.message);
+  process.exit(1);
+});

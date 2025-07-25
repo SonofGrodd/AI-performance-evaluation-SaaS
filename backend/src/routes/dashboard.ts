@@ -1,3 +1,4 @@
+// src/routes/dashboard.ts
 import express from "express";
 import { authenticateUser } from "../middleware/auth";
 import { requireRole } from "../middleware/roles";
@@ -87,16 +88,22 @@ router.get(
   async (req, res) => {
     const { id: userId } = res.locals.user;
 
-    const { data: team } = await supabase
+    const { data: team, error: teamError } = await supabase
       .from("user_profiles")
       .select("id, first_name, last_name, department")
       .eq("manager_id", userId);
 
-    const teamIds = team?.map((member) => member.id);
-
-    if (!team || team.length === 0) {
-      return res.json({ message: "No team members found", team: [], stats: {} });
+    if (teamError || !team || team.length === 0) {
+      return res.json({
+        message: "No team members found",
+        team: [],
+        reviewStats: {},
+        sentimentSummary: {},
+        aiInsights: [],
+      });
     }
+
+    const teamIds: string[] = team.map((member) => member.id);
 
     const { data: reviews } = await supabase
       .from("performance_reviews")

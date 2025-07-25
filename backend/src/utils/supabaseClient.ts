@@ -1,7 +1,9 @@
 // src/utils/supabaseClient.ts
 import { createClient } from "@supabase/supabase-js";
+import dotenv from "dotenv";
+dotenv.config();
 
-export const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // must use service role to read all profiles
-);
+const supabaseUrl = process.env.SUPABASE_URL!;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+export const supabase = createClient(supabaseUrl, supabaseKey);

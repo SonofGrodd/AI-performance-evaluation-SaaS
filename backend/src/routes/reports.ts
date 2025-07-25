@@ -3,8 +3,8 @@ import express from "express";
 import PDFDocument from "pdfkit";
 import { supabase } from "../utils/supabaseClient";
 import { authenticateUser } from "../middleware/auth";
-import { format } from "date-fns";
-import { stringify } from "fast-csv";
+
+import * as csv from "fast-csv";
 
 const router = express.Router();
 
@@ -95,7 +95,7 @@ router.get("/export/csv", authenticateUser, async (req, res) => {
     `attachment; filename=${type || "report"}-${Date.now()}.csv`
   );
 
-  stringify(records, { headers: true }).pipe(res);
+  csv.writeToStream(res, records, { headers: true });
 });
 
 export default router;

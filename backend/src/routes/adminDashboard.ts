@@ -1,3 +1,4 @@
+// src/routes/adminDashboard.ts
 import express from "express";
 import { authenticateUser } from "../middleware/auth";
 import { requireRole } from "../middleware/roles";
@@ -6,47 +7,43 @@ import { supabase } from "../utils/supabaseClient";
 const router = express.Router();
 
 /**
- * GET /api/v1/admin-dashboard/stats
- * Manager-only: Get overall company performance stats
+ * GET /api/v1/admin-dashboard/overview
+ * Manager-only: Overview analytics
  */
 router.get(
-  "/stats",
+  "/overview",
   authenticateUser,
   requireRole(["manager"]),
   async (req, res) => {
-    const userId = res.locals.user.id;
+    const { id: userId } = res.locals.user;
 
-    // Get manager's company_id
-    const { data: profile, error: profileError } = await supabase
+    // Get manager's company
+    const { data: managerProfile, error: profileError } = await supabase
       .from("user_profiles")
       .select("company_id")
       .eq("id", userId)
       .single();
 
-    if (profileError || !profile) {
+    if (profileError || !managerProfile) {
       return res.status(404).json({ error: "Manager profile not found" });
     }
 
-    const { company_id } = profile;
+    const { company_id } = managerProfile;
 
-    // Aggregate performance reviews for this company
-    const { data: reviewStats, error: reviewError } = await supabase
-      .from("performance_reviews")
-      .select("status, count:id")
-      .eq("company_id", company_id)
-      .group("status");
+    // Review stats
+    const { data: reviewStats, error: reviewError } = await supabase.rpc(
+      "get_review_status_counts_by_company",
+      { input_company_id: company_id }
+    );
 
-    // Aggregate feedback sentiments
-    const { data: sentimentStats, error: sentimentError } = await supabase
-      .from("feedback")
-      .select("sentiment_label, count:id")
-      .eq("company_id", company_id)
-      .group("sentiment_label");
+    // Sentiment stats
+    const { data: sentimentStats, error: sentimentError } = await supabase.rpc(
+      "get_sentiment_counts_by_company",
+      { input_company_id: company_id }
+    );
 
     if (reviewError || sentimentError) {
-      return res.status(500).json({
-        error: reviewError?.message || sentimentError?.message,
-      });
+      return res.status(500).json({ error: "Failed to load stats" });
     }
 
     res.json({

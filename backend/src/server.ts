@@ -1,19 +1,14 @@
-import express from "express";
+// src/server.ts
 import dotenv from "dotenv";
-import cors from "cors";
-import performanceReviewRoutes from "./routes/performanceReviews";
-
 dotenv.config();
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+import app from "./app";
 
-app.get("/", (req, res) => {
-  res.send("Fredan AI Staff Assessment API is running ✅");
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
 
-app.use("/api/v1/performance-reviews", performanceReviewRoutes);
-
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+export default app;
+//

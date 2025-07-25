@@ -1,13 +1,14 @@
 // src/routes/users.ts
 import express from 'express'
 import { supabase } from './lib/supabase'
-import { requireAuth } from './middleware/auth'
+import { authenticateUser } from './middleware/auth'
+import { Request } from 'express';
 
 const router = express.Router()
 
 // Get current user's profile
-router.get('/me', requireAuth, async (req, res) => {
-  const user = req.user!;
+router.get('/me', authenticateUser, async (req: Request, res) => {
+  const user = res.locals.user;
 
   const { data, error } = await supabase
     .from('user_profiles')
@@ -20,8 +21,8 @@ router.get('/me', requireAuth, async (req, res) => {
 })
 
 // Admin: Get all users in your company
-router.get('/', requireAuth, async (req, res) => {
-  const user = req.user!;
+router.get('/', authenticateUser, async (req: Request, res) => {
+  const user = res.locals.user;
 
   // Get current user's profile
   const { data: profile } = await supabase
@@ -44,8 +45,8 @@ router.get('/', requireAuth, async (req, res) => {
 })
 
 // Update profile
-router.patch('/me', requireAuth, async (req, res) => {
-  const user = req.user!;
+router.patch('/me', authenticateUser, async (req: Request, res) => {
+  const user = res.locals.user;
   const updates = req.body
 
   const { error } = await supabase
