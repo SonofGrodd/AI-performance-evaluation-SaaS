@@ -1,4 +1,4 @@
-// src/scripts/seedAdmin.ts
+
 import { supabaseAdmin } from "../utils/supabaseAdminClient";
 
 const adminEmail = "admin@example.com";
