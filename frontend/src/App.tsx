@@ -14,7 +14,7 @@ import Recognition from "./pages/admin/Recognition";
 import AnalyticsOverview from "./pages/admin/analytics/Overview";
 import AnalyticsGoals from "./pages/admin/analytics/GoalTracking";
 import AnalyticsFeedback from "./pages/admin/analytics/Feedback";
-import AnalyticsBehavior from "./pages/admin/analytics/Behavior   
+import AnalyticsBehavior from "./pages/admin/analytics/Behavior"; 
 import Integrations from "./pages/admin/Integrations";
 import Support from "./pages/admin/Support";
 import Settings from './pages/admin/Settings'
