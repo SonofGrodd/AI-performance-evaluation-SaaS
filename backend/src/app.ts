@@ -24,7 +24,9 @@ import notificationRoutes from "./routes/notifications"
 import adminAttendanceRoutes from "./routes/adminAttendance"
 import reportRoutes from "./routes/reports"
 import thirdPartyRoutes from "./routes/thirdParty"
-import skillTestsRoutes from "./routes/skillTests";
+import skillTestsRoutes from "./routes/skillTests"
+import behavioralAnalysisRoutes from "./routes/behavioralAnalysis"
+import threeSixtyRoutes from "./routes/threeSixtyReviews";
 
 
 dotenv.config()
@@ -32,12 +34,14 @@ dotenv.config()
 const app = express()
 
 // Middleware
+app.use("/api/v1/behavioral-analysis", behavioralAnalysisRoutes);
 app.use(cors({ origin: ["https://yourdomain.com"], credentials: true }));
 app.use(morgan('dev'))
 app.use(express.json({ limit: "1mb" }));
 
 
 // API routes
+app.use("/api/v1/three-sixty-reviews", threeSixtyRoutes);
 app.use("/api/v1/skill-tests", skillTestsRoutes); 
 app.use("/api/v1/third-party", thirdPartyRoutes);
 app.use("/api/v1/reports", reportRoutes);
