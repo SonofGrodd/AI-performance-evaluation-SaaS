@@ -2,7 +2,7 @@
 
 import { FiBell } from "react-icons/fi";
 import { useEffect, useState } from "react";
-import avatar from "../../assets/avatar.png"; // Replace with your local avatar asset or URL
+import avatar from "../../assets/avatar.jpg"; // Replace with your local avatar asset or URL
 
 const Topbar = () => {
   const [time, setTime] = useState<string>(new Date().toLocaleTimeString());

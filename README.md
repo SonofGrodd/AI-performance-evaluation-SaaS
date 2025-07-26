@@ -64,12 +64,13 @@ A production-ready SaaS platform that helps organizations assess, track, and opt
 - ✅ **Calendar + Clock-in/Clock-out Attendance**
 - ✅ **AI Insights & Sentiment Analysis**
 - ✅ **Peer Reviews & Anonymous Feedback**
-- ✅ **Team Dashboards for Managers**
+- ✅ **Employee Dashboards**
 - ✅ **Admin Dashboard & Analytics**
 - ✅ **Report Exporting (PDF / CSV)**
 - ✅ **Third-party Integration (Slack, Trello, Jira)**
 - ✅ **Notification System**
 - ✅ **Role-based Access Control**
+- ✅ **Customizable Metrics**
 
 ---
 
