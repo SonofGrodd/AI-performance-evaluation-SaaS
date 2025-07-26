@@ -17,7 +17,7 @@ import AnalyticsFeedback from "./pages/admin/analytics/Feedback";
 import AnalyticsBehavior from "./pages/admin/analytics/Behavior"; 
 import Integrations from "./pages/admin/Integrations";
 import Support from "./pages/admin/Support";
-import Settings from './pages/admin/Settings'
+import Settings from "./pages/admin/Settings"
 // Auth Page
 import Login from "./pages/Login";  
 
