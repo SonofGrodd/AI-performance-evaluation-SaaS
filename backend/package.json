@@ -11,7 +11,8 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
-    "seed:admin": "tsx scripts/seedAdmin.ts"
+    "seed:admin": "tsx scripts/seedAdmin.ts",
+     "find:user": "tsx scripts/findUserId.ts"
   },
   "keywords": [],
   "author": "",
