@@ -13,7 +13,7 @@ const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
 });
 
 const seedAdminUser = async () => {
-  const adminEmail = "managerHR@fredan.com";
+  const adminEmail = "manager@fredan.com";
   const adminPassword = "admin123"; // Change after first login
 
   try {
