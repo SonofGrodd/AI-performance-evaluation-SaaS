@@ -1,37 +1,18 @@
-import express from "express";
-import cors from "cors";
-import helmet from "helmet";
-import rateLimit from "express-rate-limit";
-import dotenv from "dotenv";
-import routes from "./routes/index"; // adjust if different
-
-dotenv.config();
+import express from 'express';
+import usersRouter from './routes/users';
+// … other imports …
 
 const app = express();
 
-// ✅ Fix: Allow requests from your frontend
-app.use(
-  cors({
-    origin: "http://localhost:5173", // your Vite frontend
-    credentials: true, // if you're using cookies or auth headers
-  })
-);
+// … your existing middleware (CORS, JSON parsing, auth middleware, etc.) …
 
-// Recommended security middleware
-app.use(helmet());
+// Mount your users routes under /api/v1/users
+app.use('/api/v1/users', usersRouter);
 
-// Basic rate limiting
-app.use(
-  rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100,
-  })
-);
+// … your existing route mounting (auth/login, companies, etc.) …
 
-// JSON body parsing
-app.use(express.json());
-
-// Routes
-app.use("/api/v1", routes);
-
-export default app;
+// Finally, start the server
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
+});

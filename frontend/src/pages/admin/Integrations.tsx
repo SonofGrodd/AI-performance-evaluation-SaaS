@@ -8,5 +8,3 @@ const Integrations = () => {
 };
 
 export default Integrations;
-// src/pages/admin/integrations/Index.tsx
-//

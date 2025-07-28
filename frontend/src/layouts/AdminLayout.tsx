@@ -1,27 +1,20 @@
-import Sidebar from "../components/admin/Sidebar";
-import Topbar from "../components/admin/Topbar";
-import { ReactNode } from "react";
+// File: frontend/src/layouts/AdminLayout.tsx
+import React from 'react';
+import { Outlet, Link } from 'react-router-dom';
 
-type AdminLayoutProps = {
-  children: ReactNode;
-};
-
-const AdminLayout = ({ children }: AdminLayoutProps) => {
-  return (
-    <div className="flex min-h-screen bg-[#F9FAFB] text-gray-900">
-      {/* Sidebar */}
-      <Sidebar />
-
-      {/* Main content area */}
-      <div className="flex-1 flex flex-col">
-        {/* Topbar */}
-        <Topbar />
-
-        {/* Page Content */}
-        <main className="p-6 flex-1 overflow-y-auto">{children}</main>
-      </div>
-    </div>
-  );
-};
+const AdminLayout: React.FC = () => (
+  <div className="admin-container">
+    <nav>
+      {/* your admin nav links */}
+      <Link to="/admin/dashboard">Dashboard</Link>
+      <Link to="/admin/employees">Employees</Link>
+      {/* …etc… */}
+    </nav>
+    <main>
+      {/* THIS is where nested <Route> children will render */}
+      <Outlet />
+    </main>
+  </div>
+);
 
 export default AdminLayout;

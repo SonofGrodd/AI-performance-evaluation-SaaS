@@ -1,33 +1,31 @@
-import { Navigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { JSX } from "react/jsx-runtime";
+// File: frontend/src/routes/ProtectedRoute.tsx
+import React from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 
-export const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
-  const { user, role, loading } = useAuth();
+export interface ProtectedRouteProps {
+  children: React.ReactElement;
+  allowedRole?: 'admin' | 'user';
+}
 
-  if (loading) {
-    return <div>Loading...</div>; // Or a spinner
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
+  allowedRole,
+}) => {
+  const location = useLocation();
+  const token    = localStorage.getItem('authToken');
+  const role     = localStorage.getItem('userRole') as 'admin' | 'user' | null;
+
+  // 1) not logged in
+  if (!token) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  if (!user || !role) {
+  // 2) role guard
+  if (allowedRole && role !== allowedRole) {
+    // you can choose to redirect to login or to their home
     return <Navigate to="/login" replace />;
   }
 
-  return children;
-};
-
-export const RequireRole = ({
-  roleRequired,
-  children,
-}: {
-  roleRequired: string;
-  children: JSX.Element;
-}) => {
-  const { role } = useAuth();
-
-  if (role !== roleRequired) {
-    return <Navigate to="/" replace />; // Redirect to home if unauthorized
-  }
-
+  // 3) authorized
   return children;
 };

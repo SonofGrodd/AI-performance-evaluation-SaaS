@@ -1,31 +1,82 @@
 // File: frontend/src/pages/Login.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+type AppRole = 'admin' | 'user';
+
+interface RawLoginResponse {
+  session?: {
+    access_token: string;
+    // …other session fields
+  };
+  user?: {
+    // Supabase’s auth user object (we ignore its “role”:authenticated field)
+  };
+  error?: string;
+}
+
+interface UserProfile {
+  role: AppRole;
+  // …other profile fields
+}
+
+const Login: React.FC = () => {
+  const navigate = useNavigate();
+  const [email, setEmail]       = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError]       = useState('');
+
+  // 🔍 Debug to confirm mount
+  useEffect(() => {
+    console.log('Login component mounted');
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError('');
 
     try {
-      const res = await fetch("http://localhost:3001/api/v1/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      // 1) Authenticate
+      const res = await fetch('http://localhost:3001/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
+      console.log('HTTP status:', res.status);
+      const raw: RawLoginResponse = await res.json();
+      console.log('Login response:', raw);
 
-      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(raw.error || 'Login failed');
+      }
 
-      if (!res.ok) throw new Error(data.error || "Login failed");
+      // 2) Extract token from session
+      const token = raw.session?.access_token;
+      if (!token) {
+        throw new Error('No access_token in login response');
+      }
+      localStorage.setItem('authToken', token);
 
-      console.log("✅ Login success:", data); // TEMP LOG
+      // 3) Fetch your app‑level profile (contains the real “role”)
+      const profileRes = await fetch('http://localhost:3001/api/v1/users/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!profileRes.ok) {
+        throw new Error('Failed to fetch user profile');
+      }
+      const profile: UserProfile = await profileRes.json();
+      console.log('User profile:', profile);
 
-      // Simulate redirect
-      alert(`Login successful for ${data.user.role}`);
+      localStorage.setItem('userRole', profile.role);
+
+      // 4) Redirect
+      if (profile.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/employee/dashboard');
+      }
     } catch (err: any) {
+      console.error('Login error:', err);
       setError(err.message);
     }
   };
@@ -41,14 +92,16 @@ const Login = () => {
             placeholder="Email"
             className="w-full mb-3 px-4 py-2 border rounded"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={e => setEmail(e.target.value)}
+            required
           />
           <input
             type="password"
             placeholder="Password"
             className="w-full mb-3 px-4 py-2 border rounded"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={e => setPassword(e.target.value)}
+            required
           />
           <button
             type="submit"

@@ -1,56 +1,47 @@
+// File: frontend/src/context/AuthContext.tsx
 import React, {
   createContext,
   useContext,
   useState,
-  ReactNode,
   useEffect,
-} from "react";
+  ReactNode,
+} from 'react';
 
-type AuthContextType = {
-  user: string | null;
-  role: "employee" | "manager" | null;
-  loading: boolean;
-  login: (user: string, role: "employee" | "manager") => void;
-  logout: () => void;
-};
+type AppRole = 'admin' | 'user' | null;
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+interface AuthContextValue {
+  token: string | null;
+  role: AppRole;
+}
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<string | null>(null);
-  const [role, setRole] = useState<"employee" | "manager" | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+// 1) Create the context with defaults
+const AuthContext = createContext<AuthContextValue>({
+  token: null,
+  role: null,
+});
+
+// 2) Provider component
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [token, setToken] = useState<string | null>(null);
+  const [role, setRole]   = useState<AppRole>(null);
 
   useEffect(() => {
-    // Example: Replace with real auth check
-    const timeout = setTimeout(() => {
-      setLoading(false);
-    }, 1000);
+    // Read from localStorage on mount
+    const storedToken = localStorage.getItem('authToken');
+    const storedRole  = (localStorage.getItem('userRole') as AppRole) || null;
 
-    return () => clearTimeout(timeout);
+    setToken(storedToken);
+    setRole(storedRole);
   }, []);
 
-  const login = (user: string, role: "employee" | "manager") => {
-    setUser(user);
-    setRole(role);
-  };
-
-  const logout = () => {
-    setUser(null);
-    setRole(null);
-  };
-
   return (
-    <AuthContext.Provider value={{ user, role, loading, login, logout }}>
+    <AuthContext.Provider value={{ token, role }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
+// 3) Hook for consuming
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
+  return useContext(AuthContext);
 };

@@ -8,7 +8,7 @@ import feedbackRoutes from "./feedback";
 import aiInsightsRoutes from "./aiInsights";
 import reviewCycleRoutes from "./reviewCycles";
 import adminDashboardRoutes from "./adminDashboard";
-import analyticsRoutes from "./dashboard"; // analytics
+import analyticsRoutes from "./adminAnalytics"; 
 import reportsRoutes from "./reports";
 import thirdPartyRoutes from "./thirdParty";
 import behavioralRoutes from "./behavioralAnalysis";
