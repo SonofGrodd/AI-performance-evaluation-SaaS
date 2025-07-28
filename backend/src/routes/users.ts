@@ -12,8 +12,7 @@ const router = Router();
  * Returns the application‑level role for the current user.
  */
 router.get(
-  '/me',
-  authenticateUser,  // ← was requireAuth :contentReference[oaicite:2]{index=2}
+  '/me', authenticateUser,  // ← was requireAuth :contentReference[oaicite:2]{index=2}
   async (req, res) => {
     // 3) pull the user ID set by your middleware
     const { id: userId } = res.locals.user as { id: string };
