@@ -1,71 +1,40 @@
-import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
-import { supabase } from "../utils/supabaseClient";
+// File: backend/src/middleware/auth.ts
+import { Request, Response, NextFunction } from 'express';
+import jwt, { JwtPayload } from 'jsonwebtoken';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
-const JWT_SECRET = process.env.SUPABASE_JWT_SECRET as string;
-const SUPABASE_ISSUER = "https://dtusgubdpwzpgivgfmks.supabase.co"; // replace with your actual project URL
-const EXPECTED_AUDIENCE = "authenticated"; // usually 'authenticated' unless customized
+// Make sure you have this in your .env:
+// SUPABASE_JWT_SECRET=<the JWT secret used by Supabase to sign tokens>
 
-/**
- * Middleware: Authenticates the user via Bearer token, checks expiration, role, and email confirmation.
- */
-export const authenticateUser = async (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization;
-  const ip = req.ip || req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+interface AuthTokenPayload extends JwtPayload {
+  sub: string;          // this is the user ID
+  // you can add other custom claims here if you’ve set them
+}
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    console.warn(`[Auth] ❌ Missing token from IP: ${ip}`);
-    return res.status(401).json({ error: "Missing token" });
+export function authenticateUser(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  const header = req.headers.authorization;
+  if (!header?.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Missing Authorization header' });
   }
 
-  const token = authHeader.split(" ")[1];
-
+  const token = header.slice(7); // strip off "Bearer "
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as {
-      sub: string;
-      exp: number;
-      aud: string;
-      iss: string;
-    };
+    // Verify the JWT using your SUPABASE_JWT_SECRET
+    const payload = jwt.verify(
+      token,
+      process.env.SUPABASE_JWT_SECRET!
+    ) as AuthTokenPayload;
 
-    // 🔐 Verify token fields
-    if (decoded.aud !== EXPECTED_AUDIENCE || decoded.iss !== SUPABASE_ISSUER) {
-      console.warn(`[Auth] ❌ Invalid token source from IP: ${ip}`);
-      return res.status(401).json({ error: "Invalid token source" });
-    }
-
-    const userId = decoded.sub;
-
-    // 🧠 Lookup user profile
-    const { data: profile, error } = await supabase
-      .from("user_profiles")
-      .select("id, role, email_confirmed")
-      .eq("id", userId)
-      .single();
-
-    if (error || !profile) {
-      console.warn(`[Auth] ❌ User profile not found for ID ${userId} from IP: ${ip}`);
-      return res.status(403).json({ error: "User profile not found" });
-    }
-
-    if (!profile.email_confirmed) {
-      return res.status(403).json({ error: "Email not confirmed" });
-    }
-
-    // ✅ Store user context
-    res.locals.user = {
-      id: userId,
-      role: profile.role,
-    };
-
-    console.log(`[Auth] ✅ Authenticated user ${userId} from IP: ${ip}`);
-    next();
+    // Attach the user ID from the token's "sub" claim
+    res.locals.user = { id: payload.sub };
+    return next();
   } catch (err: any) {
-    if (err.name === "TokenExpiredError") {
-      return res.status(401).json({ error: "Token expired" });
-    }
-
-    console.error(`[Auth] ❌ Authentication failed from IP ${ip}:`, err.message);
-    return res.status(401).json({ error: "Unauthorized" });
+    console.error('[Auth] ❌ JWT verification failed:', err.message);
+    return res.status(401).json({ error: 'Invalid or expired token' });
   }
-};
+}

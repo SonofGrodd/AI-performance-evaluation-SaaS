@@ -1,6 +1,6 @@
 // src/routes/users.ts
 import express from 'express'
-import { supabaseAdmin as supabase } from '../utils/supabaseAdminClient';
+import { supabaseAdmin } from '../utils/supabaseAdminClient';
 import { authenticateUser } from '../middleware/auth'
 import { Request } from 'express';
 
@@ -10,7 +10,7 @@ const router = express.Router()
 router.get('/me', authenticateUser, async (req: Request, res) => {
   const user = res.locals.user;
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('user_profiles')
     .select('*')
     .eq('id', user.id)
@@ -25,7 +25,7 @@ router.get('/', authenticateUser, async (req: Request, res) => {
   const user = res.locals.user;
 
   // Get current user's profile
-  const { data: profile } = await supabase
+  const { data: profile } = await supabaseAdmin
     .from('user_profiles')
     .select('company_id, role')
     .eq('id', user.id)
@@ -35,7 +35,7 @@ router.get('/', authenticateUser, async (req: Request, res) => {
     return res.status(403).json({ error: 'Access denied' })
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('user_profiles')
     .select('*')
     .eq('company_id', profile.company_id)
@@ -49,7 +49,7 @@ router.patch('/me', authenticateUser, async (req: Request, res) => {
   const user = res.locals.user;
   const updates = req.body
 
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from('user_profiles')
     .update({ ...updates, updated_at: new Date().toISOString() })
     .eq('id', user.id)
