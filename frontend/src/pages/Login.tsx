@@ -10,8 +10,7 @@ interface RawLoginResponse {
 }
 
 interface UserProfile {
-  role: AppRole;
-  // you can expand this if you return more fields later
+  role: string; // may be 'authenticated' or 'user' or 'admin'
 }
 
 const Login: React.FC = () => {
@@ -31,13 +30,14 @@ const Login: React.FC = () => {
       const authRes = await fetch('http://localhost:3001/api/v1/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        
         body: JSON.stringify({ email, password }),
       });
+
       const authText = await authRes.text();
       console.log('Login raw text:', authText);
+
       const authJson = authRes.headers.get('content-type')?.includes('application/json')
-        ? JSON.parse(authText) as RawLoginResponse
+        ? (JSON.parse(authText) as RawLoginResponse)
         : null;
 
       if (!authRes.ok || !authJson?.session?.access_token) {
@@ -47,6 +47,7 @@ const Login: React.FC = () => {
 
       const token = authJson.session.access_token;
       localStorage.setItem('authToken', token);
+      console.log('➡️ Stored authToken:', token);
 
       // 2) Fetch profile
       const profRes = await fetch('http://localhost:3001/api/v1/users/me', {
@@ -56,7 +57,7 @@ const Login: React.FC = () => {
       console.log('Profile raw text:', profText);
 
       const profJson = profRes.headers.get('content-type')?.includes('application/json')
-        ? JSON.parse(profText) as UserProfile
+        ? (JSON.parse(profText) as UserProfile)
         : null;
 
       if (!profRes.ok || !profJson) {
@@ -66,11 +67,19 @@ const Login: React.FC = () => {
         throw new Error(`Profile response missing 'role': ${profText}`);
       }
 
-      // 3) Store & redirect
-      localStorage.setItem('userRole', profJson.role);
-      if (profJson.role === 'admin') navigate('/admin/dashboard');
-      else navigate('/employee/dashboard');
+      // 3) Normalize, store role, and redirect
+      const mappedRole: AppRole = profJson.role === 'authenticated'
+        ? 'admin'
+        : (profJson.role === 'user' ? 'user' : 'user');
 
+      localStorage.setItem('userRole', mappedRole);
+      console.log('➡️ Stored userRole:', mappedRole);
+
+      if (mappedRole === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/employee/dashboard');
+      }
     } catch (err: any) {
       console.error('❌ Login error:', err);
       setError(err.message);
