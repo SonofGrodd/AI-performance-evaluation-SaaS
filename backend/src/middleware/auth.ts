@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { supabase } from "../utils/supabaseClient";
 
 const JWT_SECRET = process.env.SUPABASE_JWT_SECRET as string;
-const SUPABASE_ISSUER = "https://your-project-id.supabase.co"; // replace with your actual project URL
+const SUPABASE_ISSUER = "https://dtusgubdpwzpgivgfmks.supabase.co"; // replace with your actual project URL
 const EXPECTED_AUDIENCE = "authenticated"; // usually 'authenticated' unless customized
 
 /**

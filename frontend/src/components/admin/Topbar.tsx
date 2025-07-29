@@ -24,8 +24,8 @@ const Topbar = () => {
 
       {/* Right: Time, Notification, Avatar */}
       <div className="flex items-center gap-6 mt-4 sm:mt-0">
-        <span className="text-sm text-gray-500">{new Date().toLocaleTimeString()}</span>
-        <FiBell className="w-5 h-5 text-gray-600" />
+          <span className="text-sm text-gray-500">{time}</span>
+             <FiBell className="w-5 h-5 text-gray-600" />
         <img
           src={avatar}
           alt="User Avatar"

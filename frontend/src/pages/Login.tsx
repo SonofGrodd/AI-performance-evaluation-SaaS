@@ -5,19 +5,13 @@ import { useNavigate } from 'react-router-dom';
 type AppRole = 'admin' | 'user';
 
 interface RawLoginResponse {
-  session?: {
-    access_token: string;
-    // …other session fields
-  };
-  user?: {
-    // Supabase’s auth user object (we ignore its “role”:authenticated field)
-  };
+  session?: { access_token: string };
   error?: string;
 }
 
 interface UserProfile {
   role: AppRole;
-  // …other profile fields
+  // you can expand this if you return more fields later
 }
 
 const Login: React.FC = () => {
@@ -26,10 +20,7 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError]       = useState('');
 
-  // 🔍 Debug to confirm mount
-  useEffect(() => {
-    console.log('Login component mounted');
-  }, []);
+  useEffect(() => console.log('🔍 Login component mounted'), []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,46 +28,51 @@ const Login: React.FC = () => {
 
     try {
       // 1) Authenticate
-      const res = await fetch('http://localhost:3001/api/v1/auth/login', {
+      const authRes = await fetch('http://localhost:3001/api/v1/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        
         body: JSON.stringify({ email, password }),
       });
-      console.log('HTTP status:', res.status);
-      const raw: RawLoginResponse = await res.json();
-      console.log('Login response:', raw);
+      const authText = await authRes.text();
+      console.log('Login raw text:', authText);
+      const authJson = authRes.headers.get('content-type')?.includes('application/json')
+        ? JSON.parse(authText) as RawLoginResponse
+        : null;
 
-      if (!res.ok) {
-        throw new Error(raw.error || 'Login failed');
+      if (!authRes.ok || !authJson?.session?.access_token) {
+        const msg = authJson?.error || `Login failed (${authRes.status})`;
+        throw new Error(msg);
       }
 
-      // 2) Extract token from session
-      const token = raw.session?.access_token;
-      if (!token) {
-        throw new Error('No access_token in login response');
-      }
+      const token = authJson.session.access_token;
       localStorage.setItem('authToken', token);
 
-      // 3) Fetch your app‑level profile (contains the real “role”)
-      const profileRes = await fetch('http://localhost:3001/api/v1/users/me', {
+      // 2) Fetch profile
+      const profRes = await fetch('http://localhost:3001/api/v1/users/me', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!profileRes.ok) {
-        throw new Error('Failed to fetch user profile');
-      }
-      const profile: UserProfile = await profileRes.json();
-      console.log('User profile:', profile);
+      const profText = await profRes.text();
+      console.log('Profile raw text:', profText);
 
-      localStorage.setItem('userRole', profile.role);
+      const profJson = profRes.headers.get('content-type')?.includes('application/json')
+        ? JSON.parse(profText) as UserProfile
+        : null;
 
-      // 4) Redirect
-      if (profile.role === 'admin') {
-        navigate('/admin/dashboard');
-      } else {
-        navigate('/employee/dashboard');
+      if (!profRes.ok || !profJson) {
+        throw new Error(`Failed to fetch profile (${profRes.status})`);
       }
+      if (typeof profJson.role !== 'string') {
+        throw new Error(`Profile response missing 'role': ${profText}`);
+      }
+
+      // 3) Store & redirect
+      localStorage.setItem('userRole', profJson.role);
+      if (profJson.role === 'admin') navigate('/admin/dashboard');
+      else navigate('/employee/dashboard');
+
     } catch (err: any) {
-      console.error('Login error:', err);
+      console.error('❌ Login error:', err);
       setError(err.message);
     }
   };

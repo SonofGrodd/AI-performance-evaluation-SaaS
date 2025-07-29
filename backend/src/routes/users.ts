@@ -1,34 +1,61 @@
-// File: backend/src/routes/users.ts
-import { Router } from 'express';
-// 1) use the actual middleware export
-import { authenticateUser } from '../middleware/auth';
- // 2) fix the import path to your Supabase client
-import { supabase } from '../utils/supabaseClient';
+// src/routes/users.ts
+import express from 'express'
+import { supabaseAdmin as supabase } from '../utils/supabaseAdminClient';
+import { authenticateUser } from '../middleware/auth'
+import { Request } from 'express';
 
-const router = Router();
+const router = express.Router()
 
-/**
- * GET /api/v1/users/me
- * Returns the application‑level role for the current user.
- */
-router.get(
-  '/me', authenticateUser,  // ← was requireAuth :contentReference[oaicite:2]{index=2}
-  async (req, res) => {
-    // 3) pull the user ID set by your middleware
-    const { id: userId } = res.locals.user as { id: string };
+// Get current user's profile
+router.get('/me', authenticateUser, async (req: Request, res) => {
+  const user = res.locals.user;
 
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('role')
-      .eq('id', userId)
-      .single();
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single()
 
-    if (error) {
-      return res.status(400).json({ error: error.message });
-    }
+  if (error) return res.status(500).json({ error: error.message })
+  return res.json(data)
+})
 
-    return res.json({ role: data.role });
+// Admin: Get all users in your company
+router.get('/', authenticateUser, async (req: Request, res) => {
+  const user = res.locals.user;
+
+  // Get current user's profile
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('company_id, role')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.role !== 'admin' && profile?.role !== 'hr') {
+    return res.status(403).json({ error: 'Access denied' })
   }
-);
 
-export default router;
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .select('*')
+    .eq('company_id', profile.company_id)
+
+  if (error) return res.status(500).json({ error: error.message })
+  return res.json(data)
+})
+
+// Update profile
+router.patch('/me', authenticateUser, async (req: Request, res) => {
+  const user = res.locals.user;
+  const updates = req.body
+
+  const { error } = await supabase
+    .from('user_profiles')
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq('id', user.id)
+
+  if (error) return res.status(500).json({ error: error.message })
+  return res.json({ message: 'Profile updated' })
+})
+
+export default router

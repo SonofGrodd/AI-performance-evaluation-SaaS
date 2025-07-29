@@ -1,50 +1,36 @@
-// src/routes/auth.ts
-import express from 'express'
-import { supabase } from '../utils/supabaseClient'
+// File: backend/src/routes/auth.ts
+import { Router } from 'express';
+import { supabase } from '../utils/supabaseAnonClient';
 
-const router = express.Router()
+const router = Router();
 
-// Signup
-router.post('/signup', async (req, res) => {
-  const { email, password, first_name, last_name, company_id, role } = req.body
-
-  const { data: user, error } = await supabase.auth.admin.createUser({
-    email,
-    password,
-    user_metadata: {
-      first_name,
-      last_name,
-      role,
-    }
-  })
-
-  if (error) return res.status(400).json({ error: error.message })
-
-  // Create matching user_profile
-  const { error: profileError } = await supabase
-    .from('user_profiles')
-    .insert([{
-      id: user.user?.id,
-      company_id,
-      first_name,
-      last_name,
-      role
-    }])
-
-  if (profileError) return res.status(400).json({ error: profileError.message })
-
-  return res.status(201).json({ user: user.user })
-})
-
-// Login
+/**
+ * POST /api/v1/auth/login
+ * Body: { email, password }
+ * Returns: { session: { access_token, ... } }
+ */
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required' });
+  }
 
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-  if (error) return res.status(401).json({ error: error.message })
+    if (error || !data.session) {
+      return res.status(401).json({ error: error?.message || 'Invalid credentials' });
+    }
 
-  return res.status(200).json({ session: data.session, user: data.user })
-})
+    // Return the session object (including access_token)
+    return res.json({ session: data.session });
+  } catch (err: any) {
+    console.error('POST /auth/login error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
-export default router
+export default router;
