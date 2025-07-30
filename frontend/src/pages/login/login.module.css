@@ -1,0 +1,39 @@
+/* Bring in any Tailwind directives in modules if you need them */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Container centers the card and applies the font */
+.container {
+  @apply min-h-screen flex items-center justify-center bg-gray-100 font-sans;
+}
+
+/* The white card */
+.card {
+  @apply bg-white p-6 rounded shadow-md w-full max-w-sm;
+}
+
+/* Title at the top */
+.title {
+  @apply text-xl font-semibold mb-4;
+}
+
+/* Error message */
+.error {
+  @apply text-red-500 mb-3;
+}
+
+/* Form spacing */
+.form {
+  @apply space-y-3;
+}
+
+/* Inputs */
+.input {
+  @apply w-full px-4 py-2 border rounded;
+}
+
+/* Submit button */
+.button {
+  @apply w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 disabled:opacity-50;
+}

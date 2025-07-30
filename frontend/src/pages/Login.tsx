@@ -1,29 +1,24 @@
-// File: frontend/src/pages/Login.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import styles from './login/login.module.css';
 
 type AppRole = 'admin' | 'user';
-
-interface RawLoginResponse {
-  session?: { access_token: string };
-  error?: string;
-}
-
-interface UserProfile {
-  role: string;
-}
+interface RawLoginResponse { session?: { access_token: string }; error?: string; }
+interface UserProfile { role: string; }
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [error, setError]       = useState('');
+  const [loading, setLoading]   = useState(false);
 
   useEffect(() => console.log('🔍 Login component mounted'), []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     try {
       // 1) Authenticate
@@ -33,65 +28,48 @@ const Login: React.FC = () => {
         body: JSON.stringify({ email, password }),
       });
       const authText = await authRes.text();
-      console.log('Login raw text:', authText);
       const authJson = authRes.headers.get('content-type')?.includes('application/json')
         ? (JSON.parse(authText) as RawLoginResponse)
         : null;
-
       if (!authRes.ok || !authJson?.session?.access_token) {
-        const msg = authJson?.error || `Login failed (${authRes.status})`;
-        throw new Error(msg);
+        throw new Error(authJson?.error || `Login failed (${authRes.status})`);
       }
-
       const token = authJson.session.access_token;
       localStorage.setItem('authToken', token);
-      console.log('➡️ Stored authToken:', token);
 
       // 2) Fetch profile
       const profRes = await fetch('http://localhost:3001/api/v1/users/me', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const profText = await profRes.text();
-      console.log('Profile raw text:', profText);
-      const profJson = profRes.headers.get('content-type')?.includes('application/json')
-        ? (JSON.parse(profText) as UserProfile)
-        : null;
-
-      if (!profRes.ok || !profJson) {
+      const profJson = await profRes.json() as UserProfile;
+      if (!profRes.ok || typeof profJson.role !== 'string') {
         throw new Error(`Failed to fetch profile (${profRes.status})`);
       }
-      if (typeof profJson.role !== 'string') {
-        throw new Error(`Profile response missing 'role': ${profText}`);
-      }
 
-      // 3) Log raw role and map
-      console.log('🔎 Raw profJson.role:', profJson.role);
+      // 3) Map & store role
       const mappedRole: AppRole = profJson.role === 'user' ? 'user' : 'admin';
       localStorage.setItem('userRole', mappedRole);
-      console.log('➡️ Stored userRole:', mappedRole);
 
-      // 4) Redirect based on mappedRole
-      if (mappedRole === 'admin') {
-        navigate('/admin/dashboard');
-      } else {
-        navigate('/employee/dashboard');
-      }
+      // 4) Redirect
+      navigate(mappedRole === 'admin' ? '/admin/dashboard' : '/employee/dashboard');
     } catch (err: any) {
       console.error('❌ Login error:', err);
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-6 rounded shadow-md w-full max-w-sm">
-        <h1 className="text-xl font-semibold mb-4">Login</h1>
-        {error && <p className="text-red-500 mb-3">{error}</p>}
-        <form onSubmit={handleLogin}>
+    <div className={styles.container}>
+      <div className={styles.card}>
+        <h1 className={styles.title}>Login</h1>
+        {error && <p className={styles.error}>{error}</p>}
+        <form onSubmit={handleLogin} className={styles.form}>
           <input
             type="email"
             placeholder="Email"
-            className="w-full mb-3 px-4 py-2 border rounded"
+            className={styles.input}
             value={email}
             onChange={e => setEmail(e.target.value)}
             required
@@ -99,16 +77,17 @@ const Login: React.FC = () => {
           <input
             type="password"
             placeholder="Password"
-            className="w-full mb-3 px-4 py-2 border rounded"
+            className={styles.input}
             value={password}
             onChange={e => setPassword(e.target.value)}
             required
           />
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+            className={styles.button}
+            disabled={loading}
           >
-            Login
+            {loading ? 'Logging in…' : 'Login'}
           </button>
         </form>
       </div>

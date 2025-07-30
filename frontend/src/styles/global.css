@@ -1,0 +1,13 @@
+/* 1) Import Matter Sans */
+@import url('https://fonts.googleapis.com/css2?family=Matter:wght@400;500;700&display=swap');
+
+/* 2) Tailwind setup */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 3) Fallback in plain CSS */
+html,
+body {
+  font-family: 'Matter', sans-serif;
+}
