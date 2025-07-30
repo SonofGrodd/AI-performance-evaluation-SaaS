@@ -10,7 +10,7 @@ interface RawLoginResponse {
 }
 
 interface UserProfile {
-  role: string; // may be 'authenticated' or 'user' or 'admin'
+  role: string;
 }
 
 const Login: React.FC = () => {
@@ -32,10 +32,8 @@ const Login: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-
       const authText = await authRes.text();
       console.log('Login raw text:', authText);
-
       const authJson = authRes.headers.get('content-type')?.includes('application/json')
         ? (JSON.parse(authText) as RawLoginResponse)
         : null;
@@ -55,7 +53,6 @@ const Login: React.FC = () => {
       });
       const profText = await profRes.text();
       console.log('Profile raw text:', profText);
-
       const profJson = profRes.headers.get('content-type')?.includes('application/json')
         ? (JSON.parse(profText) as UserProfile)
         : null;
@@ -67,14 +64,13 @@ const Login: React.FC = () => {
         throw new Error(`Profile response missing 'role': ${profText}`);
       }
 
-      // 3) Normalize, store role, and redirect
-      const mappedRole: AppRole = profJson.role === 'authenticated'
-        ? 'admin'
-        : (profJson.role === 'user' ? 'user' : 'user');
-
+      // 3) Log raw role and map
+      console.log('🔎 Raw profJson.role:', profJson.role);
+      const mappedRole: AppRole = profJson.role === 'user' ? 'user' : 'admin';
       localStorage.setItem('userRole', mappedRole);
       console.log('➡️ Stored userRole:', mappedRole);
 
+      // 4) Redirect based on mappedRole
       if (mappedRole === 'admin') {
         navigate('/admin/dashboard');
       } else {
