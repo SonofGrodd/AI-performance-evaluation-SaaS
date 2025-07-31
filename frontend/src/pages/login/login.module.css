@@ -1,39 +1,140 @@
-/* Bring in any Tailwind directives in modules if you need them */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Container centers the card and applies the font */
 .container {
-  @apply min-h-screen flex items-center justify-center bg-gray-100 font-sans;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;    /* center vertically */
+  min-height: 100vh;
+  background-color: #ffffff;
+  font-family: 'Matter', sans-serif;
+  padding: 0 16px;            /* only horizontal padding now */
 }
 
-/* The white card */
-.card {
-  @apply bg-white p-6 rounded shadow-md w-full max-w-sm;
+/* Logo */
+.logo {
+  width: 120px;
+  margin-bottom: 32px;
 }
 
-/* Title at the top */
+/* Main heading */
 .title {
-  @apply text-xl font-semibold mb-4;
+  font-size: 25px;
+  font-weight: 900;
+  color: #111;
+  margin-bottom: 8px;
+  text-align: center;
 }
 
-/* Error message */
-.error {
-  @apply text-red-500 mb-3;
+/* Subheading */
+.subtitle {
+  font-size: 16px;
+  color: #616061;
+  margin-bottom: 32px;
+  text-align: center;
 }
 
-/* Form spacing */
+/* Form container */
 .form {
-  @apply space-y-3;
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 32px;
 }
 
 /* Inputs */
 .input {
-  @apply w-full px-4 py-2 border rounded;
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
 }
 
 /* Submit button */
 .button {
-  @apply w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 disabled:opacity-50;
+  width: 100%;
+  padding: 12px 0;
+  background: #4a154b;
+  color: #ffffff;
+  border: none;
+  border-radius: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Divider */
+.divider {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  margin: 0px 0 18px;
+  font-size: 12px;
+  color: #616061;
+  text-align: center;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 30%;
+  height: 1px;
+  background: #ddd;
+}
+
+.divider::before { left: 0; }
+.divider::after  { right: 0; }
+
+/* OAuth buttons */
+.oauthButtons {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  max-width: 360px;
+  margin-bottom: 32px;
+}
+
+.oauthButton {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0;
+  border: 3px solid #ddd;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.oauthButton img {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+}
+
+/* Help text */
+.help {
+  font-size: 15px;
+  color: #616061;
+  margin-bottom: 32px;
+}
+
+.help a {
+  color: #007a5a;
+  text-decoration: none;
+}
+
+/* Footer links */
+.footer {
+  font-size: 15px;
+  color: #616061;
+}
+
+.footer a {
+  color: #007a5a;
+  text-decoration: none;
+  margin: 0 4px;
 }
