@@ -22,13 +22,12 @@ const Login: React.FC = () => {
     }
     setLoading(true);
     try {
-      // authentication logic placeholder
-      // const res = await fetch(...); etc.
-      console.log('logging in', { email, password });
+      // TODO: replace with actual auth logic/fetch
+      console.log('Attempt login', { email, password });
       // simulate redirect
       setTimeout(() => {
         navigate('/dashboard');
-      }, 500);
+      }, 300);
     } catch (err: any) {
       setError('Login failed');
     } finally {
@@ -41,7 +40,7 @@ const Login: React.FC = () => {
       <div className={styles.left}>
         <div className={styles.brand}>
           <img src="/logo.svg" alt="SoftQA" className={styles.brandLogo} />
-          <div style={{ fontWeight: 600, fontSize: 16 }}>SoftQA</div>
+          <div style={{ fontWeight: 600, fontSize: 14 }}>SoftQA</div>
         </div>
 
         <h1 className={styles.heading}>Welcome Back!</h1>
@@ -51,15 +50,7 @@ const Login: React.FC = () => {
 
         <form onSubmit={handleSubmit} className={styles.form} noValidate>
           {error && (
-            <div
-              style={{
-                background: '#ffecec',
-                color: '#b00020',
-                padding: '10px 14px',
-                borderRadius: 8,
-                fontSize: 13,
-              }}
-            >
+            <div className={styles.errorBox}>
               {error}
             </div>
           )}
@@ -71,7 +62,7 @@ const Login: React.FC = () => {
               <input
                 type="email"
                 placeholder="Enter your email"
-                className={`${styles.input} with-icon`}
+                className={`${styles.input} ${styles.withIcon}`}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -86,7 +77,7 @@ const Login: React.FC = () => {
               <input
                 type="password"
                 placeholder="Enter your password"
-                className={`${styles.input} with-icon`}
+                className={`${styles.input} ${styles.withIcon}`}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -108,23 +99,18 @@ const Login: React.FC = () => {
 
         <div className={styles.divider}>
           <div className={styles.dividerLine} />
-          <div>OR</div>
+          <div className={styles.orText}>OR</div>
           <div className={styles.dividerLine} />
         </div>
 
         <div className={styles.socials}>
           <button type="button" className={styles.socialBtn}>
             <div className={styles.socialIcon}>
-              <img src="/google-logo.svg" alt="Google" style={{ width: 18, height: 18 }} />
+              <img src="/google-logo.svg" alt="Google" style={{ width: 16, height: 16 }} />
             </div>
-            <div>Continue with Google</div>
+            <div className={styles.socialText}>Continue with Google</div>
           </button>
-          <button type="button" className={styles.socialBtn}>
-            <div className={styles.socialIcon}>
-              <img src="/apple-logo-black.svg" alt="Apple" style={{ width: 18, height: 18 }} />
-            </div>
-            <div>Continue with Apple</div>
-          </button>
+          
         </div>
 
         <div className={styles.signupPrompt}>
