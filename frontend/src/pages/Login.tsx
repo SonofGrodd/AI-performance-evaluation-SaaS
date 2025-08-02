@@ -106,7 +106,7 @@ const Login: React.FC = () => {
         <div className={styles.socials}>
           <button type="button" className={styles.socialBtn}>
             <div className={styles.socialIcon}>
-              <img src="/google-logo.svg" alt="Google" style={{ width: 16, height: 16 }} />
+              <img src="/Google_g_logo.svg" alt="Google" style={{ width: 16, height: 16 }} />
             </div>
             <div className={styles.socialText}>Continue with Google</div>
           </button>
