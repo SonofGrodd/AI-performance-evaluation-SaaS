@@ -51,7 +51,7 @@
 
 .subtext {
   margin-top: 6px;
-  font-size: 12px;
+  font-size: 13px;
   color: #555f72;
   font-weight: 500;
 }
@@ -87,6 +87,34 @@
   font-size: 13px;
   outline: none;
   box-sizing: border-box;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+/* spinner for button */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Focus state with the desired color */
+.input:focus-visible,
+.input:focus {
+  outline: 2px solid #114350;
+  outline-offset: 2px;
+  border-color: #114350;
+  box-shadow: 0 0 0 3px rgba(17, 67, 80, 0.2);
 }
 
 .withIcon {
