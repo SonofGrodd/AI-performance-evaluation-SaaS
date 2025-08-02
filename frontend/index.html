@@ -1,26 +1,24 @@
-<!-- File: index.html -->
 <!DOCTYPE html>
 <html lang="en" class="font-sans">
   <head>
-    <meta charset="UTF-8" />
+    <meta charset="utf-8" />
+    <title>SoftQA Login</title>
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>My App</title>
 
-    <!-- 1. Preconnect helps browsers fetch the font faster -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link 
-      rel="preconnect" 
-      href="https://fonts.gstatic.com" 
-      crossorigin 
-    />
-
-    <!-- 2. Load Matter Sans from Google Fonts -->
+    <!-- Matter Sans self-host fallback or CDN: using CDN here for simplicity -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Matter:wght@400;500;700;900&display=swap"
+      rel="preload"
+      href="https://cdn.jsdelivr.net/npm/@fontsource/matter@4.6.13/files/matter-latin-400-normal.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
       rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@fontsource/matter@4.6.13/index.css"
     />
 
-    <!-- 3. Vite will inject your built CSS & JS here -->
+    <link rel="icon" href="/favicon.ico" />
   </head>
   <body>
     <div id="root"></div>

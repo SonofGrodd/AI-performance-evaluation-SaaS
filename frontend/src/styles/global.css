@@ -1,13 +1,11 @@
-/* 1) Import Matter Sans */
-@import url('https://fonts.googleapis.com/css2?family=Matter:wght@400;500;700&display=swap');
-
-/* 2) Tailwind setup */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* 3) Fallback in plain CSS */
-html,
-body {
-  font-family: 'Matter', sans-serif;
+html, body {
+  font-family: 'Matter', system-ui, -apple-system, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #e6e8ea;
+  height: 100%;
 }
