@@ -4,11 +4,11 @@ import styles from './signup.module.css';
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
-  const [email, setEmail]           = useState('');
-  const [password, setPassword]     = useState('');
-  const [confirm, setConfirm]       = useState('');
-  const [error, setError]           = useState('');
-  const [loading, setLoading]       = useState(false);
+  const [email, setEmail]       = useState('');
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm]   = useState('');
+  const [error, setError]       = useState('');
+  const [loading, setLoading]   = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,9 +26,8 @@ const Signup: React.FC = () => {
 
     setLoading(true);
     try {
-      // TODO: connect this with your backend/signup API
-      console.log('Creating account with:', email, password);
-      // Simulate success
+      // TODO: Replace with real signup API call
+      console.log('📝 Creating account with', { email, password });
       setTimeout(() => {
         navigate('/login');
       }, 1500);
@@ -44,99 +43,123 @@ const Signup: React.FC = () => {
       <div className={styles.left}>
         <div className={styles.brand}>
           <img src="/logo.svg" alt="Fredan" className={styles.brandLogo} />
-          <div className={styles.brandText}>Fredan</div>
         </div>
 
-        <h1 className={styles.heading}>Create your account</h1>
+        <h1 className={styles.heading}>Join Fredan</h1>
         <p className={styles.subtext}>
-          Sign up to explore intelligent employee performance insights.
+          Sign up to gain access to your intelligent performance dashboard.
         </p>
 
-        <form onSubmit={handleSubmit} className={styles.form}>
+        <form onSubmit={handleSubmit} className={styles.form} noValidate>
           {error && <div className={styles.errorBox}>{error}</div>}
 
           <div className={styles.inputGroup}>
             <label className={styles.label}>Email</label>
-            <input
-              type="email"
-              className={styles.input}
-              placeholder="name@company.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+            <div className={styles.inputWrapper}>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className={styles.input}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
           </div>
 
           <div className={styles.inputGroup}>
             <label className={styles.label}>Password</label>
-            <input
-              type="password"
-              className={styles.input}
-              placeholder="Create a password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div className={styles.inputWrapper}>
+              <input
+                type="password"
+                placeholder="Create a password"
+                className={styles.input}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
           </div>
 
           <div className={styles.inputGroup}>
             <label className={styles.label}>Confirm Password</label>
-            <input
-              type="password"
-              className={styles.input}
-              placeholder="Repeat your password"
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              required
-            />
+            <div className={styles.inputWrapper}>
+              <input
+                type="password"
+                placeholder="Confirm password"
+                className={styles.input}
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                required
+              />
+            </div>
           </div>
 
           <button type="submit" className={styles.submitBtn} disabled={loading}>
-            {loading ? 'Creating account…' : 'Sign Up'}
+            {loading ? (
+              <>
+                <span className={styles.spinner} aria-hidden="true" />
+                <span style={{ marginLeft: 8 }}>Creating account…</span>
+              </>
+            ) : (
+              'Sign Up'
+            )}
           </button>
         </form>
 
         <div className={styles.divider}>
           <div className={styles.dividerLine} />
-          <span className={styles.orText}>OR</span>
+          <div className={styles.orText}>OR</div>
           <div className={styles.dividerLine} />
         </div>
 
         <div className={styles.socials}>
-          <button className={styles.socialBtn}>
-            <img src="/google-logo.svg" alt="Google" />
-            Continue with Google
-          </button>
-          <button className={styles.socialBtn}>
-            <img src="/apple-logo-black.svg" alt="Apple" />
-            Continue with Apple
+          <button type="button" className={styles.socialBtn}>
+            <div className={styles.socialIcon}>
+              <img src="/img/Google_g_logo.svg" alt="Google" style={{ width: 16, height: 16 }} />
+            </div>
+            <div className={styles.socialText}>Continue with Google</div>
           </button>
         </div>
 
-        <p className={styles.redirectPrompt}>
+        <div className={styles.signupPrompt}>
           Already have an account?{' '}
-          <span className={styles.link} onClick={() => navigate('/login')}>
-            Sign in
+          <span
+            style={{ color: '#0f3446', fontWeight: 600, cursor: 'pointer' }}
+            onClick={() => navigate('/login')}
+          >
+            Sign In
           </span>
-        </p>
+        </div>
       </div>
 
       <div className={styles.right}>
-        <div className={styles.testimonial}>
-          <h2 className={styles.testHeading}>
-            Built for high-performing teams
-          </h2>
+        <div className={styles.testimonialBlock}>
+          <h1 className={styles.testHeading}>
+            Power your career with smart insights
+          </h1>
           <p className={styles.quote}>
-            Fredan makes it effortless to monitor growth, track engagement, and
-            align performance with company goals.
+            "Fredan gives every team member clarity and direction. Our onboarding, feedback, and reviews
+            are more meaningful and results-driven than ever before."
           </p>
           <div className={styles.author}>
-            <img src="/michael-carter.jpg" alt="Michael Carter" />
-            <div>
-              <p className={styles.authorName}>Michael Carter</p>
-              <p className={styles.authorTitle}>Engineering Lead at DevCore</p>
+            <img src="/img/susan.jpg" alt="Susan" className={styles.authorImg} />
+            <div className={styles.authorInfo}>
+              <p className={styles.authorName}>Susan Evans</p>
+              <p className={styles.authorTitle}>HR Director, NovaTech</p>
             </div>
           </div>
+        </div>
+
+        <div className={styles.partners}>
+          <div style={{ flex: '1 0 100%', fontSize: 10, letterSpacing: 1.5, marginBottom: 4 }}>
+            JOIN 1K TEAMS
+          </div>
+          <img src="/img/discord.svg" alt="Discord" className={styles.partnerLogo} />
+          <img src="/img/mailchimp.svg" alt="Mailchimp" className={styles.partnerLogo} />
+          <img src="/img/grammarly.svg" alt="Grammarly" className={styles.partnerLogo} />
+          <img src="/img/intercom.svg" alt="Intercom" className={styles.partnerLogo} />
+          <img src="/img/dropbox.svg" alt="Dropbox" className={styles.partnerLogo} />
         </div>
       </div>
     </div>
