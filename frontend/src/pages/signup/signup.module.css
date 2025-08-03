@@ -51,14 +51,14 @@
 
 .subtext {
   margin-top: 6px;
-  margin-bottom: 15px;
+  margin-bottom: 7px;
   font-size: 13px;
   color: #555f72;
   font-weight: 500;
 }
 
 .form {
-  margin-top: 20px;
+  margin-top: 15px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -172,7 +172,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 16px 0 15px;
+  margin: 15px 0 13px;
   font-size: 11px;
   color: #6f6f85;
 }
@@ -180,6 +180,7 @@
 .dividerLine {
   flex: 1;
   height: 1px;
+  width: 30%;
   background: #d9d9e0;
 }
 
@@ -225,6 +226,7 @@
   margin-top: 14px;
   font-size: 13px;
   text-align: center;
+  font-weight: 300;
 }
 
 /* Right panel */

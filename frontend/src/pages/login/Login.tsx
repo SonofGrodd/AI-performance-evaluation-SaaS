@@ -184,7 +184,7 @@ const Login: React.FC = () => {
         <div className={styles.signupPrompt}>
           Don’t have an account?{' '}
           <span
-            style={{ color: '#0f3446', fontWeight: 600, cursor: 'pointer' }}
+            style={{ color: '#0f3446', fontWeight: 500, cursor: 'pointer' }}
             onClick={() => navigate('/signup')}
           >
             Sign Up
