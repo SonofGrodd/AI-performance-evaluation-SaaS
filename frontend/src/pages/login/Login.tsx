@@ -1,7 +1,7 @@
 // File: src/pages/login/Login.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from './/login/login.module.css';
+import styles from './login.module.css';
 
 type AppRole = 'admin' | 'user';
 
@@ -108,7 +108,7 @@ const Login: React.FC = () => {
 
         <h1 className={styles.heading}>Welcome Back!</h1>
         <p className={styles.subtext}>
-          Sign in to access your dashboard and continue optimizing your QA process.
+         Sign in to your dashboard and continue elevating employee performance.
         </p>
 
         <form onSubmit={handleSubmit} className={styles.form} noValidate>
@@ -174,7 +174,7 @@ const Login: React.FC = () => {
         <div className={styles.socials}>
           <button type="button" className={styles.socialBtn}>
             <div className={styles.socialIcon}>
-              <img src="/Google_g_logo.svg" alt="Google" style={{ width: 16, height: 16 }} />
+              <img src="/img/Google_g_logo.svg" alt="Google" style={{ width: 16, height: 16 }} />
             </div>
             <div className={styles.socialText}>Continue with Google</div>
           </button>
@@ -194,24 +194,23 @@ const Login: React.FC = () => {
 
       <div className={styles.right}>
         <div className={styles.testimonialBlock}>
-          <h2 className={styles.testHeading}>
-            Revolutionize QA with <br />
-            Smarter Automation
-          </h2>
+          <h1 className={styles.testHeading}>
+           Transform Employee Performance with AI Solutions
+          </h1><br></br>
           <p className={styles.quote}>
-            SoftQA has completely transformed our testing process. It’s reliable,
-            efficient, and ensures our releases are always top-notch.
+          "Fredan surfaces strengths and areas for growth so your team can thrive.
+          Since adopting Fredan, our review cycle became more actionable and team engagement rose significantly."
           </p>
           <div className={styles.author}>
             <img
-              src="/michael-carter.jpg"
-              alt="Michael Carter"
+              src="img/elon.jpg"
+              alt="elon"
               className={styles.authorImg}
             />
             <div className={styles.authorInfo}>
-              <p className={styles.authorName}>Michael Carter</p>
+              <p className={styles.authorName}>Elon Musk</p>
               <p className={styles.authorTitle}>
-                Software Engineer at DevCore
+                Tesla CEO
               </p>
             </div>
           </div>
@@ -221,14 +220,11 @@ const Login: React.FC = () => {
           <div style={{ flex: '1 0 100%', fontSize: 10, letterSpacing: 1.5, marginBottom: 4 }}>
             JOIN 1K TEAMS
           </div>
-          <img src="/logos/discord.svg" alt="Discord" className={styles.partnerLogo} />
-          <img src="/logos/mailchimp.svg" alt="Mailchimp" className={styles.partnerLogo} />
-          <img src="/logos/grammarly.svg" alt="Grammarly" className={styles.partnerLogo} />
-          <img src="/logos/attentive.svg" alt="Attentive" className={styles.partnerLogo} />
-          <img src="/logos/hellosign.svg" alt="HelloSign" className={styles.partnerLogo} />
-          <img src="/logos/intercom.svg" alt="Intercom" className={styles.partnerLogo} />
-          <img src="/logos/square.svg" alt="Square" className={styles.partnerLogo} />
-          <img src="/logos/dropbox.svg" alt="Dropbox" className={styles.partnerLogo} />
+          <img src="/img/discord.svg" alt="Discord" className={styles.partnerLogo} />
+          <img src="/img/mailchimp.svg" alt="Mailchimp" className={styles.partnerLogo} />
+          <img src="/img/grammarly.svg" alt="Grammarly" className={styles.partnerLogo} />
+          <img src="/img/intercom.svg" alt="Intercom" className={styles.partnerLogo} />
+          <img src="/img/dropbox.svg" alt="Dropbox" className={styles.partnerLogo} />
         </div>
       </div>
     </div>

@@ -25,14 +25,16 @@
   import EmployeeDashboard from './pages/employee/Dashboard';
 
   // Auth Page
-  import Login from './pages/Login';
+  import Login from './pages/login/Login';
+  import Signup from './pages/signup/Signup';
 
   const App: React.FC = () => (
     <AuthProvider>
       <Router>
         <Routes>
-          {/* 1) Public login */}
+        
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
 
           {/* 2) Employee area (role='user') */}
           <Route

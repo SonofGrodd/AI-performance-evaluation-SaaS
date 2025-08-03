@@ -4,7 +4,7 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Matter', 'sans-serif'],
+        sans: ['Euclid Circular A', 'sans-serif'],
       },
       colors: {
         'panel-grad-start': '#0f3446',

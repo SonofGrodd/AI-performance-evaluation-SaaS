@@ -12,8 +12,8 @@
   min-height: 100vh;
   height: 100vh;
   overflow: hidden;
-  font-family: 'Matter', system-ui, -apple-system, sans-serif;
-  background: #e6e8ea;
+  font-family: 'Euclid Circular A', system-ui, -apple-system, sans-serif;
+  background: #ffffff;
 }
 
 /* Left panel */
@@ -32,7 +32,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 20px;
+  margin-bottom: 40px;
 }
 
 .brandLogo {
@@ -51,6 +51,7 @@
 
 .subtext {
   margin-top: 6px;
+  margin-bottom: 15px;
   font-size: 13px;
   color: #555f72;
   font-weight: 500;
@@ -71,7 +72,7 @@
 
 .label {
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
   color: #1f2a40;
 }
 
@@ -141,11 +142,12 @@
   font-size: 12px;
   color: #0f3446;
   text-decoration: none;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .submitBtn {
   margin-top: 6px;
+  margin-bottom: 10px;
   background: #0f3446;
   color: #fff;
   border: none;
@@ -170,7 +172,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 16px 0 10px;
+  margin: 16px 0 15px;
   font-size: 11px;
   color: #6f6f85;
 }
@@ -236,6 +238,7 @@
   flex-direction: column;
   justify-content: space-between;
   overflow: hidden;
+  align-items: center;
 }
 
 .testimonialBlock {
@@ -243,26 +246,29 @@
 }
 
 .testHeading {
-  font-size: 34px;
-  font-weight: 600;
+  font-size: 40px;
+  font-weight: 500;
   margin: 0 0 10px;
   line-height: 1.1;
 }
 
 .quote {
-  font-size: 13px;
+  font-size: 14px;
   margin: 10px 0;
+  font-style: italic;
+  font-weight: 200px;
   line-height: 1.4;
   position: relative;
 }
 
 .quote:before {
   content: "“";
-  font-size: 38px;
+  font-size: 50px;
   position: absolute;
-  left: -6px;
-  top: -10px;
-  opacity: 0.2;
+  left: -25px;
+  top: -29px;
+  color: #67ccd5;
+  
 }
 
 .author {
@@ -310,8 +316,9 @@
 .partnerLogo {
   filter: brightness(1.2);
   opacity: 0.9;
-  width: 50px;
+  width: 25px;
   object-fit: contain;
+  margin-right: 15px;
 }
 
 /* Responsive: hide right side on tablet/mobile */
