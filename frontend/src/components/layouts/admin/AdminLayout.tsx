@@ -1,20 +1,27 @@
-// File: frontend/src/layouts/AdminLayout.tsx
-import React from 'react';
-import { Outlet, Link } from 'react-router-dom';
+// src/components/layout/AdminLayout.tsx
 
-const AdminLayout: React.FC = () => (
-  <div className="admin-container">
-    <nav>
-      {/* your admin nav links */}
-      <Link to="/admin/dashboard">Dashboard</Link>
-      <Link to="/admin/employees">Employees</Link>
-      {/* …etc… */}
-    </nav>
-    <main>
-      {/* THIS is where nested <Route> children will render */}
-      <Outlet />
-    </main>
-  </div>
-);
+import { Outlet } from 'react-router-dom';
+import Sidebar from './Sidebar';
+import Topbar from './Topbar';
+
+const AdminLayout = () => {
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+      {/* Sidebar */}
+      <Sidebar />
+
+      {/* Main content */}
+      <div className="flex flex-col flex-1">
+        {/* Top bar */}
+        <Topbar />
+
+        {/* Page content */}
+        <main className="p-6 flex-1 overflow-y-auto">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+};
 
 export default AdminLayout;

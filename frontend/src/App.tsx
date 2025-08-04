@@ -45,6 +45,13 @@
               </ProtectedRoute>
             }
           />
+          <Route path="/admin" element={<AdminLayout />}>
+  <Route path="dashboard" element={<Dashboard />} />
+  <Route path="employees" element={<Employees />} />
+  <Route path="performance-reviews" element={<PerformanceReviews />} />
+  ...
+</Route>
+
 
           {/* 3) Admin area (role='admin') */}
           <Route

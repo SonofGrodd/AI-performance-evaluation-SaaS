@@ -1,13 +1,11 @@
 // src/pages/admin/dashboard/Index.tsx
 
-import AdminLayout from "../../components/layouts/admin/AdminLayout";
-
 const Dashboard = () => {
   return (
-    <AdminLayout>
-      <h1 className="text-2xl font-bold mb-4">Welcome to the Dashboard</h1>
-      {/* Place your dashboard widgets and analytics here */}
-    </AdminLayout>
+    <div className="p-6">
+      <h1 className="text-2xl font-semibold mb-4">Dashboard</h1>
+      <p>This is the main dashboard for administrators.</p>
+    </div>
   );
 };
 
