@@ -1,36 +1,33 @@
-// src/components/admin/Topbar.tsx
+// src/components/layout/Topbar.tsx
 
-import { FiBell } from "react-icons/fi";
-import { useEffect, useState } from "react";
-import avatar from "../../assets/avatar.jpg"; // Replace with your local avatar asset or URL
+import { FiBell, FiUser } from 'react-icons/fi';
 
 const Topbar = () => {
-  const [time, setTime] = useState<string>(new Date().toLocaleTimeString());
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTime(new Date().toLocaleTimeString());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
   return (
-    <header className="w-full px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white border-b shadow-sm">
-      {/* Left: Greeting */}
+    <header className="w-full h-16 px-6 flex items-center justify-between border-b bg-white shadow-sm">
+      {/* Greeting */}
       <div>
-        <h1 className="text-xl font-semibold">Hi, Coco Design 👋</h1>
-        <p className="text-sm text-gray-500">Let’s optimize your team performance with AI today!</p>
+        <h1 className="text-lg font-semibold text-gray-800">
+          Hi, Fredan Admin 👋
+        </h1>
+        <p className="text-sm text-gray-500">Welcome back to your dashboard</p>
       </div>
 
-      {/* Right: Time, Notification, Avatar */}
-      <div className="flex items-center gap-6 mt-4 sm:mt-0">
-          <span className="text-sm text-gray-500">{time}</span>
-             <FiBell className="w-5 h-5 text-gray-600" />
-        <img
-          src={avatar}
-          alt="User Avatar"
-          className="w-8 h-8 rounded-full object-cover border"
-        />
+      {/* Right Controls */}
+      <div className="flex items-center gap-4">
+        <button className="relative p-2 rounded-full hover:bg-gray-100 text-gray-600">
+          <FiBell size={20} />
+          <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full" />
+        </button>
+
+        <div className="flex items-center gap-2">
+          <img
+            src="/img/avatar-admin.jpg"
+            alt="User"
+            className="h-8 w-8 rounded-full object-cover"
+          />
+          <span className="text-sm text-gray-700 font-medium hidden sm:inline">Admin</span>
+        </div>
       </div>
     </header>
   );
