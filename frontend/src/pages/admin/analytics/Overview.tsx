@@ -1,6 +1,6 @@
 // src/pages/admin/analytics/Overview.tsx
 
-import Topbar from "../../../components/admin/Topbar";
+import Topbar from "../../../components/layouts/admin/Topbar";
 import { Link } from "react-router-dom";
 
 const Overview = () => {

@@ -1,6 +1,6 @@
 // src/pages/admin/dashboard/Index.tsx
 
-import AdminLayout from "../../layouts/AdminLayout";
+import AdminLayout from "../../components/layouts/admin/AdminLayout";
 
 const Dashboard = () => {
   return (

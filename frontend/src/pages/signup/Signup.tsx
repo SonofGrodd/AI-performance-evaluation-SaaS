@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './signup.module.css';
 
+
 const Signup: React.FC = () => {
   const navigate = useNavigate();
   const [email, setEmail]       = useState('');
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState(''); // Changed from 'password' to 'confirmPassword'
   const [confirm, setConfirm]   = useState('');
   const [error, setError]       = useState('');
   const [loading, setLoading]   = useState(false);
@@ -27,7 +28,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   // Proceed to sign up
   console.log('✅ Proceeding to signup with', { email, password });
   // API call logic here...
-};
+
 
 
     setLoading(true);
@@ -116,7 +117,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       placeholder="Confirm Password"
       className={`${styles.input} ${styles.withIcon}`}
       value={password}
-      onChange={(e) => setPassword(e.target.value)}
+      onChange={(e) => setConfirm(e.target.value)}
       required
     />
   </div>

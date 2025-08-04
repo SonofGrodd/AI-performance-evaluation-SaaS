@@ -5,7 +5,7 @@
   import { AuthProvider } from './context/AuthContext';
 
   // Layout
-  import AdminLayout from './layouts/AdminLayout';
+  import AdminLayout from './components/layouts/admin/AdminLayout';
 
   // Admin Pages
   import Dashboard          from './pages/admin/Dashboard';
