@@ -1,4 +1,4 @@
-// components/layout/Sidebar.tsx
+// components/layout/admin/Sidebar.tsx
 "use client";
 
 import {
@@ -14,16 +14,17 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Circle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import styles from "./Sidebar.module.css";
 import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const location = useLocation();
 
   const menu = [
     { label: "Overview", icon: LayoutGrid, path: "/admin/dashboard" },
@@ -51,7 +52,6 @@ const Sidebar = () => {
       )}
     >
       <div className="flex flex-col gap-6 p-4">
-        {/* Logo */}
         <div className="flex items-center justify-between">
           {!collapsed && (
             <span className="text-2xl font-bold text-white tracking-tight">Fredan</span>
@@ -66,21 +66,22 @@ const Sidebar = () => {
           </Button>
         </div>
 
-        {/* Navigation */}
         <nav className="flex flex-col gap-2">
           {menu.map((item, idx) =>
             item.children ? (
               <div key={idx}>
-                <div className="text-xs text-gray-400 uppercase mb-1 px-2">
-                  {collapsed ? null : item.label}
-                </div>
+                {!collapsed && (
+                  <div className={styles.sidebarSectionTitle}>{item.label}</div>
+                )}
                 {item.children.map((sub, subIdx) => (
                   <SidebarItem
                     key={subIdx}
                     icon={sub.icon}
                     label={sub.label}
                     path={sub.path}
+                    badge={sub.badge}
                     collapsed={collapsed}
+                    active={location.pathname === sub.path}
                   />
                 ))}
               </div>
@@ -92,52 +93,47 @@ const Sidebar = () => {
                 badge={item.badge}
                 path={item.path}
                 collapsed={collapsed}
+                active={location.pathname === item.path}
               />
             )
           )}
         </nav>
       </div>
 
-      {/* Footer */}
-      <div className="p-4 border-t border-white/10">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src="/avatar.png" />
-            <AvatarFallback>FD</AvatarFallback>
-          </Avatar>
-          {!collapsed && (
-            <div>
-              <p className="text-sm font-semibold leading-tight">Slater Tselogun</p>
-              <p className="text-xs text-muted text-gray-400">slater@fredan.io</p>
-            </div>
-          )}
-        </div>
+      <div className={styles.sidebarFooter}>
+        <Avatar className="h-8 w-8">
+          <AvatarImage src="/avatar.png" />
+          <AvatarFallback>FD</AvatarFallback>
+        </Avatar>
+        {!collapsed && (
+          <div className={styles.sidebarFooterText}>
+            <p className={styles.sidebarFooterName}>Slater Tselogun</p>
+            <p className={styles.sidebarFooterEmail}>slater@fredan.io</p>
+          </div>
+        )}
       </div>
     </aside>
   );
 };
 
-const SidebarItem = ({ icon: Icon, label, path, badge, collapsed }: any) => {
+const SidebarItem = ({ icon: Icon, label, path, badge, collapsed, active }: any) => {
   return (
-    <div
+    <Link
+      to={path}
       className={cn(
         styles.sidebarItem,
-        "flex items-center px-3 py-2 text-sm rounded-md hover:bg-[#065F46] transition-colors cursor-pointer",
-        collapsed && "justify-center"
+        collapsed && "justify-center",
+        active && styles.sidebarItemActive
       )}
     >
       <Icon size={18} />
       {!collapsed && (
         <>
           <span className="ml-3 flex-1">{label}</span>
-          {badge && (
-            <span className="bg-green-500 text-white text-xs px-2 rounded-full">
-              {badge}
-            </span>
-          )}
+          {badge && <span className={styles.sidebarBadge}>{badge}</span>}
         </>
       )}
-    </div>
+    </Link>
   );
 };
 
