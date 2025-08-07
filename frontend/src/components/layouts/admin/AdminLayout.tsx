@@ -6,17 +6,17 @@ import Topbar from './Topbar';
 
 const AdminLayout = () => {
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex h-screen bg-[#f5f7fa] overflow-hidden">
       {/* Sidebar */}
       <Sidebar />
 
       {/* Main content */}
-      <div className="flex flex-col flex-1">
-        {/* Top bar */}
+      <div className="flex flex-col flex-1 min-w-0">
+        {/* Topbar */}
         <Topbar />
 
         {/* Page content */}
-        <main className="p-6 flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto px-6 py-4">
           <Outlet />
         </main>
       </div>
